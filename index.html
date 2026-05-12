@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>50音配對冒險</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0c29; color: #fff;
+    min-height: 100dvh; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+
+  /* ── 通用 ── */
+  .screen { display: none; min-height: 100dvh; flex-direction: column;
+    align-items: center; justify-content: center; padding: 16px; }
+  .screen.active { display: flex; }
+
+  .btn { min-height: 48px; padding: 12px 24px; border: none; border-radius: 30px;
+    font-size: clamp(14px,4vw,16px); font-weight: bold; cursor: pointer;
+    transition: transform .15s, opacity .15s; touch-action: manipulation; width: 100%; max-width: 320px; }
+  .btn:active { transform: scale(.96); opacity: .9; }
+  @media(hover:hover){ .btn:hover { transform: scale(1.04); } }
+  .btn-gold   { background: linear-gradient(135deg,#f6d365,#fda085); color: #333; }
+  .btn-blue   { background: linear-gradient(135deg,#4facfe,#00f2fe); color: #fff; }
+  .btn-purple { background: linear-gradient(135deg,#a18cd1,#fbc2eb); color: #333; }
+  .rarity-ssr { color: #ffd700; text-shadow: 0 0 8px #ffd70088; }
+  .rarity-sr  { color: #c0c0c0; }
+
+  /* 屬性 */
+  .el-光 { color: #ffe082; } .el-火 { color: #ff7043; } .el-暗 { color: #ce93d8; }
+  .el-草 { color: #81c784; } .el-水 { color: #64b5f6; }
+  .bg-光 { background: linear-gradient(135deg,#3a2e1a,#1a1200); border-color: #ffd700 !important; }
+  .bg-火 { background: linear-gradient(135deg,#3a1a0a,#200800); border-color: #ff7043 !important; }
+  .bg-暗 { background: linear-gradient(135deg,#1e0a3a,#0a0015); border-color: #ce93d8 !important; }
+  .bg-草 { background: linear-gradient(135deg,#0a2a0a,#001200); border-color: #81c784 !important; }
+  .bg-水 { background: linear-gradient(135deg,#0a1e3a,#000e20); border-color: #64b5f6 !important; }
+
+  /* ── 標題畫面 ── */
+  #screen-title { background: radial-gradient(ellipse at center,#302b63 0%,#0f0c29 70%); gap: 0; }
+  .title-logo { font-size: clamp(36px,10vw,56px); font-weight: 900; letter-spacing: 4px;
+    background: linear-gradient(135deg,#f6d365,#fda085,#f093fb);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+  .title-sub { font-size: clamp(11px,3vw,14px); color: #aaa; letter-spacing: 6px; margin-bottom: 32px; }
+  .title-chars { display: flex; gap: 10px; margin-bottom: 36px; flex-wrap: nowrap; }
+  .title-char-card { width: clamp(52px,13vw,68px); height: clamp(68px,18vw,88px);
+    border-radius: 10px; border: 2px solid; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px; font-size: 10px;
+    animation: float 3s ease-in-out infinite; }
+  .title-char-card:nth-child(2){animation-delay:.5s} .title-char-card:nth-child(3){animation-delay:1s}
+  .title-char-card:nth-child(4){animation-delay:1.5s} .title-char-card:nth-child(5){animation-delay:2s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .char-emoji { font-size: clamp(22px,6vw,28px); }
+
+  /* ── 主頁 ── */
+  #screen-home { background: radial-gradient(ellipse at center,#1a1035 0%,#0f0c29 70%);
+    justify-content: flex-end; padding: 0; gap: 0; position: relative; overflow: hidden; }
+
+  /* 立繪全版背景 */
+  .home-char-bg { position: absolute; inset: 0; display: flex; justify-content: center; align-items: flex-end; pointer-events: none; }
+  .home-char-bg video, .home-char-bg img {
+    height: 100dvh; width: auto; max-width: 100%; object-fit: contain; object-position: bottom center; }
+
+  /* 底部資訊欄 */
+  .home-bottom { position: relative; z-index: 2; width: 100%;
+    background: linear-gradient(to top, #0f0c29ee 60%, transparent);
+    padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+
+  .home-char-banner { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 420px; }
+  .home-char-info { flex: 1; min-width: 0; }
+  .active-char-name { font-size: clamp(16px,4.5vw,20px); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 8px #000; }
+  .active-char-lv { font-size: 13px; color: #ccc; margin: 4px 0; }
+  .exp-bar-wrap { width: 100%; background: #333; border-radius: 10px; height: 8px; overflow: hidden; }
+  .exp-bar { height: 100%; background: linear-gradient(90deg,#f6d365,#fda085); border-radius: 10px; transition: width .6s; }
+  .exp-text { font-size: 10px; color: #888; margin-top: 3px; }
+
+  .stat-row { display: flex; gap: 10px; width: 100%; max-width: 420px; }
+  .stat-box { flex: 1; background: #ffffff18; backdrop-filter: blur(4px); border-radius: 10px; padding: 8px 4px; text-align: center; border: 1px solid #ffffff11; }
+  .stat-num { font-size: clamp(16px,4.5vw,20px); font-weight: bold; color: #f6d365; }
+  .stat-label { font-size: 10px; color: #aaa; }
+  .home-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; align-items: center; }
+
+  /* ── 成就通知 ── */
+  #achievement-popup { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-120px);
+    z-index: 9999; background: linear-gradient(135deg,#1a1035,#2a1a4a); border: 2px solid #ffd700;
+    border-radius: 16px; padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 0 24px #ffd70055; min-width: 260px; max-width: 320px;
+    transition: transform .4s cubic-bezier(.175,.885,.32,1.275), opacity .4s; opacity: 0; }
+  #achievement-popup.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .ach-pop-icon { font-size: 36px; flex-shrink: 0; }
+  .ach-pop-body { flex: 1; min-width: 0; }
+  .ach-pop-title { font-size: 10px; color: #ffd700; letter-spacing: 2px; font-weight: bold; }
+  .ach-pop-name { font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ach-pop-desc { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  /* ── 成就畫面 ── */
+  #screen-achievements { background: #0f0c29; justify-content: flex-start; padding-top: 20px; gap: 0; }
+  .ach-tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 12px 0 8px; }
+  .ach-tab { padding: 6px 14px; border-radius: 20px; border: 1px solid #444; background: #ffffff11;
+    font-size: 12px; cursor: pointer; transition: all .2s; touch-action: manipulation; }
+  .ach-tab.active { background: linear-gradient(135deg,#f6d365,#fda085); color: #333; border-color: transparent; font-weight: bold; }
+  .ach-list { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto; max-height: calc(100dvh - 200px); padding: 4px 0 16px; }
+  .ach-item { display: flex; align-items: center; gap: 12px; background: #ffffff0d; border: 1px solid #ffffff18;
+    border-radius: 12px; padding: 12px 14px; transition: all .2s; }
+  .ach-item.unlocked { background: linear-gradient(135deg,#1e1040,#2a1548); border-color: #ffd70055; }
+  .ach-item-icon { font-size: 32px; width: 44px; text-align: center; flex-shrink: 0; }
+  .ach-item.locked-ach .ach-item-icon { filter: grayscale(1); opacity: .4; }
+  .ach-item-body { flex: 1; min-width: 0; }
+  .ach-item-name { font-size: 14px; font-weight: bold; }
+  .ach-item.locked-ach .ach-item-name { color: #555; }
+  .ach-item-desc { font-size: 11px; color: #888; margin-top: 2px; }
+  .ach-item.unlocked .ach-item-desc { color: #aaa; }
+  .ach-item-check { font-size: 20px; flex-shrink: 0; }
+  .ach-reward { font-size: 10px; color: #666; margin-top: 3px; }
+  .ach-reward.got { color: #ffd700; }
+
+  /* ── 角色圖鑑 ── */
+  #screen-collection { background: #0f0c29; justify-content: flex-start; padding-top: 20px; gap: 0; }
+  .collection-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+    width: 100%; max-width: 480px; margin: 12px 0; overflow-y: auto; max-height: calc(100dvh - 160px); }
+  .col-card { border-radius: 10px; border: 2px solid #333; padding: 8px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; transition: transform .15s; position: relative; touch-action: manipulation; }
+  .col-card:active:not(.locked) { transform: scale(.94); }
+  @media(hover:hover){ .col-card:hover:not(.locked) { transform: scale(1.05); } }
+  .col-card.locked { filter: grayscale(1) brightness(.4); cursor: default; }
+  .col-card .c-emoji { font-size: clamp(24px,7vw,32px); }
+  .col-card .c-name { font-size: clamp(8px,2.2vw,11px); text-align: center; line-height: 1.3; }
+  .col-card .c-lv { font-size: 9px; color: #aaa; }
+  .active-badge { position: absolute; top: 3px; right: 3px; background: #ffd700; color: #333;
+    font-size: 7px; font-weight: bold; border-radius: 3px; padding: 1px 3px; }
+
+  /* ── 關卡選擇 ── */
+  #screen-stages { background: #0f0c29; justify-content: flex-start; padding-top: 20px; overflow-y: auto; }
+  .stage-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+    width: 100%; max-width: 360px; margin: 16px 0; }
+  .stage-grid .stage-btn:last-child:nth-child(3n-1) { grid-column: 2; }
+  .stage-grid .stage-btn:last-child:nth-child(3n-2) { grid-column: 2; }
+  .boss-btn { border-color: #ff4444 !important; background: linear-gradient(135deg,#2a0808,#1a0000) !important;
+    width: 160px; animation: glow-red 1.5s ease-in-out infinite alternate; }
+  @keyframes glow-red { from{box-shadow:0 0 8px #ff444433} to{box-shadow:0 0 20px #ff4444} }
+  .boss2-btn { border-color: #ce93d8 !important; background: linear-gradient(135deg,#1e083a,#0a0020) !important;
+    width: 160px; animation: glow-purple 1.5s ease-in-out infinite alternate; }
+  @keyframes glow-purple { from{box-shadow:0 0 8px #ce93d833} to{box-shadow:0 0 24px #ce93d8} }
+  .comp-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; width: 100%; }
+  .comp-btn { padding: clamp(6px,2vw,10px) 4px !important; }
+  .comp-btn .stage-hira { font-size: clamp(11px,3vw,14px) !important; line-height: 1.4; }
+  @media(max-width:360px){ .comp-grid { grid-template-columns: repeat(3,1fr); } }
+  .stage-btn { background: #ffffff11; border: 2px solid #444; border-radius: 12px;
+    padding: clamp(8px,2.5vw,14px) 4px; text-align: center; cursor: pointer;
+    transition: transform .15s; touch-action: manipulation; }
+  .stage-btn:active:not(.locked) { transform: scale(.93); }
+  @media(hover:hover){ .stage-btn:hover:not(.locked){ transform:scale(1.05); background:#ffffff22; } }
+  .stage-btn.locked { filter: grayscale(1) brightness(.5); cursor: default; }
+  .stage-btn.completed { border-color: #ffd700; }
+  .stage-hira { font-size: clamp(20px,6vw,28px); }
+  .stage-name { font-size: clamp(9px,2.4vw,11px); color: #ccc; margin-top: 3px; }
+  .stage-stars { font-size: 10px; }
+
+  /* ── 遊戲畫面 ── */
+  #screen-game { background: #0a0820; justify-content: flex-start; padding: 0; gap: 0; position: relative; overflow: hidden; }
+
+  /* 立繪背景 */
+  .game-char-bg { position: absolute; inset: 0; display: flex; justify-content: center; align-items: flex-end; pointer-events: none; }
+  .game-char-bg video, .game-char-bg img {
+    height: 100dvh; width: auto; max-width: 100%; object-fit: contain; object-position: bottom center;
+    opacity: .45; mask-image: linear-gradient(to top, rgba(0,0,0,.8) 50%, transparent 100%); -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,.8) 50%, transparent 100%); }
+
+  /* 頂部 HUD */
+  .game-hud { position: relative; z-index: 2; width: 100%; background: #110d2acc;
+    backdrop-filter: blur(6px); border-bottom: 1px solid #2a2050;
+    padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .hud-char { display: none; } /* 已移至背景 */
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .hud-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .hud-name { font-size: clamp(12px,3.5vw,15px); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hud-row { display: flex; align-items: center; gap: 8px; }
+  .hp-bar-wrap { flex: 1; background: #333; border-radius: 6px; height: 8px; overflow: hidden; }
+  .hp-bar { height: 100%; background: linear-gradient(90deg,#ff4444,#ff9944); border-radius: 6px; transition: width .4s; }
+  .hud-hp-text { font-size: 11px; color: #ff9999; flex-shrink: 0; }
+  /* 計時器 */
+  #hud-timer-row { display: none; }
+  #hud-timer-row.active { display: flex; align-items: center; gap: 8px; }
+  .card.selected .card-inner { box-shadow: 0 0 0 3px #4facfe, 0 0 12px #4facfe88; }
+  .timer-bar-wrap { flex: 1; background: #333; border-radius: 6px; height: 8px; overflow: hidden; }
+  .timer-bar { height: 100%; border-radius: 6px; transition: width 1s linear, background .5s; }
+  .timer-text { font-size: 11px; font-weight: bold; flex-shrink: 0; min-width: 28px; text-align: right; }
+  /* 複習關卡 */
+  .review-section { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 400px; margin-top: 16px; gap: 8px; }
+  .review-missed-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .review-missed-badge { background: #3a1a1a; border: 1px solid #ff6b6b55; border-radius: 20px;
+    padding: 4px 10px; font-size: 13px; display: flex; align-items: center; gap: 4px; }
+  .review-missed-badge .err-cnt { font-size: 10px; color: #ff6b6b; }
+  .hud-combo { font-size: clamp(12px,3.5vw,15px); color: #ffd700; font-weight: bold; flex-shrink: 0; }
+  .hud-exp { font-size: 11px; color: #f6d365; flex-shrink: 0; }
+
+  /* 遊戲中心區 */
+  .game-body { position: relative; z-index: 2; flex: 1; width: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 12px 12px 8px; gap: 10px; }
+  .game-row-title { font-size: clamp(18px,5vw,24px); font-weight: bold; text-align: center; }
+  .game-progress { font-size: 12px; color: #aaa; text-align: center; }
+
+  /* 卡片 — 用 vw 讓5張完美填滿 */
+  .cards-grid { display: grid; grid-template-columns: repeat(5,1fr);
+    gap: clamp(5px,1.5vw,10px); width: 100%; max-width: 420px; }
+  .card { width: 100%; aspect-ratio: 4/5; border-radius: 10px; cursor: pointer;
+    perspective: 600px; touch-action: manipulation; }
+  .card-inner { width: 100%; height: 100%; transition: transform .35s;
+    transform-style: preserve-3d; position: relative; }
+  .card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+  .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid #555; }
+  .card-front { background: linear-gradient(135deg,#1a1035,#302b63); }
+  .card-front-icon { font-size: clamp(18px,5vw,26px); opacity: .4; }
+  .card-back { background: linear-gradient(135deg,#2d2052,#1a0a35); transform: rotateY(180deg);
+    border-color: #7c5cbf; flex-direction: column; gap: 2px; }
+  .card-back.romaji { background: linear-gradient(135deg,#0a2035,#102040); border-color: #4a90d9; }
+  .card-back .kana-text { font-size: clamp(18px,5.5vw,28px); font-weight: bold; line-height: 1; }
+  .card-back .card-label { font-size: clamp(7px,1.8vw,9px); color: #aaa; }
+  .card.matched .card-back { border-color: #ffd700; background: linear-gradient(135deg,#2a2010,#1a1500); }
+  .card.wrong .card-back { border-color: #ff4444; animation: shake .3s; }
+  @keyframes shake{0%,100%{transform:rotateY(180deg)}25%{transform:rotateY(180deg) translateX(-4px)}75%{transform:rotateY(180deg) translateX(4px)}}
+  .divider-label { font-size: 11px; color: #555; }
+  .btn-quit { background: #1a1535; color: #888; border: 1px solid #333; border-radius: 20px;
+    padding: 8px 20px; font-size: 12px; cursor: pointer; min-height: 36px; touch-action: manipulation; }
+
+  /* ── 結果畫面 ── */
+  #screen-result { background: radial-gradient(ellipse at center,#1a1035 0%,#0f0c29 70%); gap: 8px; }
+  .result-char { display: flex; justify-content: center; animation: bounce .6s ease-in-out; }
+  .result-char img { border-radius: 14px; box-shadow: 0 8px 32px #00000088; }
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+  .result-title { font-size: clamp(24px,7vw,36px); font-weight: 900; }
+  .result-stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 380px; }
+  .result-stat { flex: 1; min-width: 70px; background: #ffffff11; border-radius: 12px; padding: 10px 8px; text-align: center; }
+  .result-stat-num { font-size: clamp(20px,6vw,28px); font-weight: bold; color: #f6d365; }
+  .result-stat-label { font-size: 10px; color: #aaa; }
+  .levelup-banner { font-size: clamp(14px,4vw,20px); font-weight: bold; color: #ffd700;
+    padding: 8px 20px; border: 2px solid #ffd700; border-radius: 30px;
+    animation: glow 1s ease-in-out infinite alternate; }
+  @keyframes glow{from{box-shadow:0 0 8px #ffd70044}to{box-shadow:0 0 22px #ffd700}}
+  .unlock-banner { font-size: clamp(12px,3.5vw,14px); color: #ce93d8; }
+  .result-exp-bar { width: min(280px,85vw); background: #333; border-radius: 10px; height: 12px; overflow: hidden; }
+  .result-exp-fill { height: 100%; background: linear-gradient(90deg,#f6d365,#fda085); border-radius: 10px; transition: width 1.2s .4s; }
+  .result-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 360px; }
+  .result-btns .btn { max-width: 160px; font-size: 13px; min-height: 44px; }
+
+  /* ── 挑戰關卡 ── */
+  #screen-challenge { background: #0a0820; justify-content: flex-start; padding: 0; gap: 0; position: relative; overflow: hidden; }
+  .ch-body { position: relative; z-index: 2; flex: 1; width: 100%; display: flex; flex-direction: column;
+    align-items: center; padding: 10px 14px 8px; gap: 10px; overflow-y: auto; }
+  .ch-prompt { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+  .ch-meaning { font-size: clamp(28px,8vw,42px); font-weight: 900; color: #f6d365;
+    text-shadow: 0 0 16px #f6d36588; letter-spacing: 2px; }
+  .ch-hint { font-size: clamp(20px,6vw,30px); color: #ccc; letter-spacing: 6px; font-weight: bold; }
+  .ch-answer-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    min-height: 52px; align-items: center; }
+  .ch-box { width: 46px; height: 46px; border-radius: 10px; border: 2px solid #444;
+    display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold;
+    transition: all .2s; background: #ffffff08; }
+  .ch-box.filled  { border-color: #4facfe; background: #0d1e3a; color: #fff; }
+  .ch-box.correct { border-color: #4caf50; background: #0a200a; animation: pop .3s; }
+  .ch-box.wrong   { border-color: #ff4444; background: #2a0808; animation: shake2 .35s; }
+  .ch-box.reveal  { border-color: #ffd700; background: #1a1200; color: #ffd700; }
+  @keyframes pop   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
+  @keyframes shake2{ 0%,100%{transform:translateX(0)} 30%{transform:translateX(-6px)} 70%{transform:translateX(6px)} }
+  .ch-cards-grid { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; max-width: 360px; }
+  .ch-card { width: 54px; height: 54px; border-radius: 12px; border: 2px solid #4a3a6a;
+    background: linear-gradient(135deg,#1a1035,#2a1a4a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: bold; cursor: pointer;
+    transition: transform .12s, opacity .2s; touch-action: manipulation; user-select: none; }
+  .ch-card:active { transform: scale(.9); }
+  @media(hover:hover){ .ch-card:hover { transform: scale(1.06); border-color: #7c5cbf; } }
+  .ch-card.used { opacity: .2; pointer-events: none; }
+  .ch-card.flash-wrong { border-color: #ff4444 !important; background: #2a0808 !important; }
+  .ch-score-row { display: flex; gap: 16px; font-size: 13px; color: #ccc; }
+  .ch-score-row span { color: #f6d365; font-weight: bold; }
+  /* 挑戰結束覆蓋層 */
+  #ch-gameover { display: none; position: absolute; inset: 0; z-index: 10;
+    background: #000000cc; backdrop-filter: blur(6px);
+    flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  #ch-gameover.show { display: flex; }
+  .ch-gameover-title { font-size: clamp(28px,8vw,40px); font-weight: 900; color: #ff6b6b; }
+  .ch-gameover-score { font-size: clamp(20px,6vw,28px); color: #f6d365; font-weight: bold; }
+  .ch-gameover-sub { font-size: 13px; color: #aaa; }
+  .ch-gameover-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── Modal 全螢幕 ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; }
+  .modal-overlay.active { display: flex; }
+  .modal-card { position: relative; width: 100%; height: 100dvh; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end; border-radius: 0; border: none; padding: 0; background: #0a0820; }
+  .modal-bg { position: absolute; inset: 0; display: flex; justify-content: center; align-items: flex-end; pointer-events: none; }
+  .modal-bg video, .modal-bg img { height: 100dvh; width: auto; max-width: 100%; object-fit: contain; object-position: bottom center; }
+  .modal-info-panel { position: relative; z-index: 2; padding: 12px 16px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .modal-name { font-size: clamp(22px,6vw,32px); font-weight: bold; text-shadow: 0 2px 10px #000; }
+  .modal-info { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .modal-tag { padding: 4px 14px; border-radius: 20px; font-size: 13px; background: #ffffff22; backdrop-filter: blur(4px); }
+  .modal-lv { font-size: clamp(28px,8vw,40px); font-weight: 900; color: #ffd700; }
+  .modal-exp-label { font-size: 12px; color: #aaa; }
+  .modal-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 360px; }
+  .modal-btns .btn { max-width: 160px; font-size: 14px; min-height: 48px; }
+
+  /* ── 時裝選擇器 ── */
+  .costume-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px;
+    width: 100%; max-width: 480px; scrollbar-width: none; -ms-overflow-style: none; }
+  .costume-row::-webkit-scrollbar { display: none; }
+  .costume-card { flex-shrink: 0; width: 72px; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; cursor: pointer; touch-action: manipulation; }
+  .costume-card .cos-thumb { width: 60px; height: 76px; border-radius: 8px; border: 2px solid #444;
+    object-fit: cover; object-position: top center; transition: border-color .2s, transform .15s; }
+  .costume-card.active .cos-thumb { border-color: #ffd700; box-shadow: 0 0 10px #ffd70088; }
+  .costume-card:active .cos-thumb { transform: scale(.93); }
+  @media(hover:hover){ .costume-card:hover .cos-thumb { border-color: #aaa; } }
+  .costume-card .cos-name { font-size: 9px; color: #bbb; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 68px; }
+  .costume-card.active .cos-name { color: #ffd700; }
+  .costume-card.cos-locked .cos-thumb { filter: grayscale(1) brightness(.35); }
+  .costume-card.cos-locked { cursor: default; opacity: .7; }
+  .costume-label { font-size: 11px; color: #888; letter-spacing: 2px; margin-bottom: 2px; }
+
+  /* ── 立繪圖片 ── */
+  .char-img { object-fit: contain; border-radius: 8px; display: block; }
+  .char-img-sm  { width: 44px;  height: 56px;  border-radius: 6px; object-fit: cover; object-position: top center; }
+  .char-img-md  { width: 72px;  height: 92px;  border-radius: 8px; object-fit: cover; object-position: top center; }
+  .char-img-lg  { width: clamp(100px,26vw,160px); height: auto; max-height: 220px; border-radius: 10px; }
+  .char-img-xl  { width: clamp(130px,32vw,180px); height: auto; border-radius: 12px; }
+  .char-img-modal { width: clamp(140px,38vw,180px); height: auto; border-radius: 12px; margin: 0 auto; }
+  .char-img-locked { filter: grayscale(1) brightness(.25) contrast(1.2); }
+  .home-char-banner img, .home-char-banner video { box-shadow: 0 4px 20px #00000066; }
+  .hud-char img, .hud-char video { border-radius: 6px; box-shadow: 0 2px 10px #00000088; width: 44px; height: 56px; object-fit: cover; object-position: top; }
+  .char-img-title { width: clamp(50px,13vw,68px); height: clamp(64px,17vw,88px); border-radius: 8px; object-fit: cover; object-position: top center; animation: float 3s ease-in-out infinite; }
+  .char-img-title:nth-child(2){animation-delay:.5s} .char-img-title:nth-child(3){animation-delay:1s}
+  .char-img-title:nth-child(4){animation-delay:1.5s} .char-img-title:nth-child(5){animation-delay:2s}
+
+  /* ── Toast ── */
+  .toast { position: fixed; top: env(safe-area-inset-top, 16px); left: 50%;
+    transform: translateX(-50%); background: #ffd700; color: #333; padding: 10px 22px;
+    border-radius: 30px; font-weight: bold; z-index: 200; opacity: 0; transition: opacity .3s;
+    pointer-events: none; font-size: 13px; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ 標題畫面 ═══════════════ -->
+<div id="screen-title" class="screen active">
+  <div class="title-logo">50音冒險</div>
+  <div class="title-sub">HIRAGANA QUEST</div>
+  <div class="title-chars" id="title-chars"></div>
+  <button class="btn btn-gold" onclick="startGame()">▶ 開始冒險</button>
+</div>
+
+<!-- ═══════════════ 主頁 ═══════════════ -->
+<div id="screen-home" class="screen">
+  <!-- 全版立繪背景 -->
+  <div class="home-char-bg" id="home-char-bg"></div>
+  <!-- 底部資訊 -->
+  <div class="home-bottom">
+    <div class="home-char-banner" id="home-char-card">
+      <div class="home-char-info">
+        <div class="active-char-name" id="home-char-name"></div>
+        <div class="active-char-lv" id="home-char-lv"></div>
+        <div class="exp-bar-wrap"><div class="exp-bar" id="home-exp-bar"></div></div>
+        <div class="exp-text" id="home-exp-text"></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="stat-stages">0</div><div class="stat-label">通關關卡</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-chars">1</div><div class="stat-label">收集角色</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-matches">0</div><div class="stat-label">成功配對</div></div>
+    </div>
+    <div class="home-btns">
+      <button class="btn btn-gold" onclick="showScreen('stages')">⚔️ 出發冒險</button>
+      <button class="btn btn-purple" onclick="showScreen('collection')">📖 角色圖鑑</button>
+      <button class="btn btn-blue" onclick="showScreen('achievements')">🏆 成就</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 成就通知浮窗 ═══════════════ -->
+<div id="achievement-popup">
+  <div class="ach-pop-icon">🏆</div>
+  <div class="ach-pop-body">
+    <div class="ach-pop-title">🎉 成就解鎖！</div>
+    <div class="ach-pop-name"></div>
+    <div class="ach-pop-desc"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ 成就畫面 ═══════════════ -->
+<div id="screen-achievements" class="screen">
+  <h2 style="margin-bottom:2px">🏆 成就</h2>
+  <div style="font-size:12px;color:#aaa" id="ach-count"></div>
+  <div class="ach-tabs" id="ach-tabs"></div>
+  <div class="ach-list" id="ach-list"></div>
+  <button class="btn btn-blue" onclick="showScreen('home')" style="margin-top:8px;flex-shrink:0">← 返回</button>
+</div>
+
+<!-- ═══════════════ 角色圖鑑 ═══════════════ -->
+<div id="screen-collection" class="screen">
+  <h2 style="margin-bottom:4px">📖 角色圖鑑</h2>
+  <div style="font-size:12px;color:#aaa" id="col-count"></div>
+  <div class="collection-grid" id="collection-grid"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+    <button class="btn btn-blue" onclick="showScreen('home')">← 返回</button>
+  </div>
+</div>
+
+<!-- ═══════════════ 關卡選擇 ═══════════════ -->
+<div id="screen-stages" class="screen">
+  <h2 style="margin-bottom:4px">⚔️ 選擇關卡</h2>
+  <div style="font-size:12px;color:#aaa;margin-bottom:12px">完成關卡解鎖新角色</div>
+  <div class="stage-grid" id="stage-grid"></div>
+
+  <!-- 魔王關 -->
+  <div id="boss-section" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="flex:1;height:1px;background:#5a1a1a"></div>
+      <span style="font-size:13px;color:#ff6b6b;font-weight:bold;white-space:nowrap">👹 魔王關</span>
+      <div style="flex:1;height:1px;background:#5a1a1a"></div>
+    </div>
+    <div id="boss-lock-msg" style="font-size:12px;color:#666;margin-bottom:8px">🔒 通關全部綜合題後解鎖</div>
+    <div id="boss-btn-wrap"></div>
+  </div>
+
+  <div id="boss2-section" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="flex:1;height:1px;background:#4a1a5a"></div>
+      <span style="font-size:13px;color:#ce93d8;font-weight:bold;white-space:nowrap">💀 終極魔王關</span>
+      <div style="flex:1;height:1px;background:#4a1a5a"></div>
+    </div>
+    <div id="boss2-lock-msg" style="font-size:12px;color:#666;margin-bottom:8px">🔒 通關魔王關後解鎖</div>
+    <div id="boss2-btn-wrap"></div>
+  </div>
+
+  <div id="comp-section" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="flex:1;height:1px;background:#333"></div>
+      <span style="font-size:13px;color:#ce93d8;font-weight:bold;white-space:nowrap">🔀 綜合題關</span>
+      <div style="flex:1;height:1px;background:#333"></div>
+    </div>
+    <div id="comp-lock-msg" style="font-size:12px;color:#666;margin-bottom:8px">🔒 通關全部5段後解鎖</div>
+    <div class="comp-grid" id="comp-grid"></div>
+  </div>
+
+  <!-- 挑戰關 -->
+  <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <div style="flex:1;height:1px;background:#333"></div>
+      <span style="font-size:13px;color:#fda085;font-weight:bold;white-space:nowrap">🎯 挑戰關卡</span>
+      <div style="flex:1;height:1px;background:#333"></div>
+    </div>
+    <div style="font-size:12px;color:#aaa;text-align:center">無限出題・日文單字排字・血量歸零結束</div>
+    <button class="btn btn-gold" style="max-width:200px;min-height:40px;font-size:14px" onclick="enterChallenge()">開始挑戰</button>
+  </div>
+
+  <!-- 複習關 -->
+  <div id="review-section" class="review-section" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <div style="flex:1;height:1px;background:#333"></div>
+      <span style="font-size:13px;color:#4facfe;font-weight:bold;white-space:nowrap">📝 複習關卡</span>
+      <div style="flex:1;height:1px;background:#333"></div>
+    </div>
+    <div style="font-size:12px;color:#aaa;text-align:center">全明牌連連看・限時挑戰</div>
+    <div id="review-missed-row" class="review-missed-row"></div>
+    <button class="btn btn-blue" style="max-width:200px;min-height:40px;font-size:14px" onclick="enterReviewStage()">開始複習</button>
+  </div>
+
+  <button class="btn btn-blue" onclick="showScreen('home')" style="margin-top:16px">← 返回</button>
+</div>
+
+<!-- ═══════════════ 遊戲畫面 ═══════════════ -->
+<div id="screen-game" class="screen">
+  <!-- 全版立繪背景 -->
+  <div class="game-char-bg" id="game-char-bg"></div>
+  <!-- 頂部 HUD -->
+  <div class="game-hud">
+    <div class="hud-char" id="game-char-emoji"></div>
+    <div class="hud-right">
+      <div class="hud-name" id="game-char-name"></div>
+      <div class="hud-row">
+        <div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar"></div></div>
+        <div class="hud-hp-text" id="mistakes-display">❤️❤️❤️</div>
+      </div>
+      <div class="hud-row">
+        <div class="hud-combo" id="combo-display">COMBO ×0</div>
+        <div class="hud-exp" id="exp-gained-display">+0 EXP</div>
+      </div>
+      <div class="hud-row" id="hud-timer-row">
+        <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+        <div class="timer-text" id="timer-text">60s</div>
+      </div>
+    </div>
+  </div>
+  <!-- 卡片區 -->
+  <div class="game-body">
+    <div>
+      <div class="game-row-title" id="game-row-title"></div>
+      <div class="game-progress" id="game-progress"></div>
+    </div>
+    <div class="cards-grid" id="cards-grid-hira"></div>
+    <div class="divider-label">▲ 平假名　▼ 羅馬拼音</div>
+    <div class="cards-grid" id="cards-grid-roma"></div>
+    <button class="btn-quit" onclick="quitGame()">放棄關卡</button>
+  </div>
+</div>
+
+<!-- ═══════════════ 挑戰關卡畫面 ═══════════════ -->
+<div id="screen-challenge" class="screen">
+  <div class="game-char-bg" id="ch-char-bg"></div>
+  <div class="game-hud">
+    <div class="hud-char"></div>
+    <div class="hud-right">
+      <div class="hud-name" id="ch-char-name"></div>
+      <div class="hud-row">
+        <div class="hp-bar-wrap"><div class="hp-bar" id="ch-hp-bar"></div></div>
+        <div class="hud-hp-text" id="ch-hp-text">❤️❤️❤️</div>
+      </div>
+      <div class="hud-row">
+        <div class="hud-combo" id="ch-score-disp">得分 0</div>
+        <div class="hud-exp" id="ch-streak-disp">連對 ×0</div>
+      </div>
+    </div>
+  </div>
+  <div class="ch-body">
+    <div class="ch-prompt">
+      <div class="ch-meaning" id="ch-meaning">？</div>
+      <div class="ch-hint" id="ch-hint"></div>
+    </div>
+    <div class="ch-answer-row" id="ch-answer-row"></div>
+    <div class="ch-cards-grid" id="ch-cards-grid"></div>
+    <button class="btn-quit" onclick="quitChallenge()">放棄關卡</button>
+  </div>
+  <!-- 結束覆蓋層 -->
+  <div id="ch-gameover">
+    <div class="ch-gameover-title">💀 挑戰結束</div>
+    <div class="ch-gameover-score" id="ch-final-score">得分：0</div>
+    <div class="ch-gameover-sub" id="ch-final-streak">最高連對：0</div>
+    <div class="ch-gameover-btns">
+      <button class="btn btn-gold" style="max-width:140px;min-height:44px" onclick="enterChallenge()">再挑戰</button>
+      <button class="btn btn-blue" style="max-width:140px;min-height:44px" onclick="showScreen('stages')">選關卡</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 結果畫面 ═══════════════ -->
+<div id="screen-result" class="screen">
+  <div class="result-char" id="result-char-emoji"></div>
+  <div class="result-title" id="result-title"></div>
+  <div class="result-stats" id="result-stats"></div>
+  <div class="result-exp-bar"><div class="result-exp-fill" id="result-exp-fill" style="width:0%"></div></div>
+  <div style="font-size:11px;color:#aaa;margin-bottom:6px" id="result-lv-text"></div>
+  <div id="result-extra"></div>
+  <div class="result-btns">
+    <button class="btn btn-gold" id="btn-retry" onclick="retryStage()">🔄 再挑戰</button>
+    <button class="btn btn-blue" onclick="showScreen('stages')">⚔️ 選關卡</button>
+    <button class="btn btn-purple" onclick="showScreen('home')">🏠 回主頁</button>
+  </div>
+</div>
+
+<!-- ═══════════════ 角色詳情 Modal ═══════════════ -->
+<div class="modal-overlay" id="modal-char" onclick="closeModal()">
+  <div class="modal-card" id="modal-card-inner">
+    <div class="modal-bg" id="modal-bg"></div>
+    <div class="modal-info-panel" onclick="event.stopPropagation()">
+      <div class="modal-name" id="modal-name" style="display:none"></div>
+      <div style="display:flex;align-items:flex-end;gap:10px;width:100%">
+        <button id="modal-set-active-btn" onclick="setActiveChar()"
+          style="flex-shrink:0;padding:8px 14px;border:none;border-radius:20px;
+          background:linear-gradient(135deg,#f6d365,#fda085);color:#333;font-size:13px;
+          font-weight:bold;cursor:pointer;white-space:nowrap;min-height:40px;touch-action:manipulation">
+          ⭐ 設為主角
+        </button>
+        <div id="modal-costume-wrap" style="display:none;flex:1;min-width:0">
+          <div class="costume-label">✦ 時裝</div>
+          <div class="costume-row" id="modal-costume-row"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  資料定義
+// ══════════════════════════════════════════
+const ELEMENT_EMOJI = { '光':'✨', '火':'🔥', '暗':'🌙', '草':'🌿', '水':'💧' };
+const IMG_BASE   = 'hotUpdate_decrypted/UI/RoleShowCards/';
+const VIDEO_BASE = 'hotUpdate_decrypted/Video/Hero/';
+
+// 時裝系列名稱對應（suffix → 系列名）
+const COSTUME_SERIES = {
+  '101':'薄紅透瑞', '102':'禁忌織夢', '103':'濕身之秀', '104':'片刻歡愉',
+  '105':'暗夜蝶舞',   '106':'午夜私語', '107':'幻夢曇花', '108':'成名的代價',
+};
+// 時裝資料（僅含靜態+動態皆存在、且非 000/010 的檔案）
+const COSTUMES = {
+  1:  [ {id:'c01101',name:'薄紅透瑞',  suffix:'101'},{id:'c01102',name:'禁忌織夢',  suffix:'102'},{id:'c01103',name:'濕身之秀',  suffix:'103'},{id:'c01104',name:'片刻歡愉',  suffix:'104'},{id:'c01106',name:'午夜私語',  suffix:'106'},{id:'c01108',name:'成名的代價',suffix:'108'} ],
+  2:  [ {id:'c02101',name:'薄紅透瑞',  suffix:'101'},{id:'c02102',name:'禁忌織夢',  suffix:'102'},{id:'c02103',name:'濕身之秀',  suffix:'103'},{id:'c02104',name:'片刻歡愉',  suffix:'104'},{id:'c02106',name:'午夜私語',  suffix:'106'} ],
+  3:  [ {id:'c03101',name:'薄紅透瑞',  suffix:'101'},{id:'c03105',name:'即興發揮',    suffix:'105'},{id:'c03106',name:'午夜私語',  suffix:'106'},{id:'c03107',name:'幻夢曇花',  suffix:'107'} ],
+  4:  [ {id:'c04101',name:'薄紅透瑞',  suffix:'101'},{id:'c04104',name:'片刻歡愉',  suffix:'104'},{id:'c04105',name:'即興發揮',    suffix:'105'},{id:'c04106',name:'午夜私語',  suffix:'106'},{id:'c04108',name:'成名的代價',suffix:'108'} ],
+  5:  [ {id:'c05101',name:'薄紅透瑞',  suffix:'101'},{id:'c05102',name:'禁忌織夢',  suffix:'102'},{id:'c05103',name:'濕身之秀',  suffix:'103'},{id:'c05104',name:'片刻歡愉',  suffix:'104'},{id:'c05106',name:'午夜私語',  suffix:'106'},{id:'c05108',name:'成名的代價',suffix:'108'} ],
+  6:  [ {id:'c06101',name:'薄紅透瑞',  suffix:'101'},{id:'c06106',name:'午夜私語',  suffix:'106'} ],
+  7:  [ {id:'c07101',name:'薄紅透瑞',  suffix:'101'},{id:'c07102',name:'禁忌織夢',  suffix:'102'},{id:'c07103',name:'濕身之秀',  suffix:'103'},{id:'c07104',name:'片刻歡愉',  suffix:'104'},{id:'c07106',name:'午夜私語',  suffix:'106'},{id:'c07108',name:'成名的代價',suffix:'108'} ],
+  8:  [ {id:'c08101',name:'薄紅透瑞',  suffix:'101'},{id:'c08102',name:'禁忌織夢',  suffix:'102'},{id:'c08103',name:'濕身之秀',  suffix:'103'},{id:'c08104',name:'片刻歡愉',  suffix:'104'},{id:'c08106',name:'午夜私語',  suffix:'106'} ],
+  9:  [ {id:'c09101',name:'薄紅透瑞',  suffix:'101'} ],
+  10: [ {id:'c10101',name:'薄紅透瑞',  suffix:'101'} ],
+  11: [ {id:'c11101',name:'薄紅透瑞',  suffix:'101'},{id:'c11102',name:'禁忌織夢',  suffix:'102'},{id:'c11103',name:'濕身之秀',  suffix:'103'},{id:'c11104',name:'片刻歡愉',  suffix:'104'},{id:'c11105',name:'即興發揮',    suffix:'105'},{id:'c11106',name:'午夜私語',  suffix:'106'},{id:'c11108',name:'成名的代價',suffix:'108'} ],
+  12: [ {id:'c12101',name:'薄紅透瑞',  suffix:'101'},{id:'c12105',name:'即興發揮',    suffix:'105'},{id:'c12106',name:'午夜私語',  suffix:'106'} ],
+  13: [ {id:'c13101',name:'薄紅透瑞',  suffix:'101'},{id:'c13105',name:'即興發揮',    suffix:'105'} ],
+  14: [ {id:'c14101',name:'薄紅透瑞',  suffix:'101'},{id:'c14102',name:'禁忌織夢',  suffix:'102'},{id:'c14103',name:'濕身之秀',  suffix:'103'},{id:'c14104',name:'片刻歡愉',  suffix:'104'},{id:'c14105',name:'即興發揮',    suffix:'105'},{id:'c14106',name:'午夜私語',  suffix:'106'} ],
+  15: [ {id:'c15101',name:'薄紅透瑞',  suffix:'101'},{id:'c15105',name:'即興發揮',    suffix:'105'} ],
+  16: [ {id:'c16101',name:'薄紅透瑞',  suffix:'101'},{id:'c16106',name:'午夜私語',  suffix:'106'} ],
+  17: [ {id:'c17101',name:'薄紅透瑞',  suffix:'101'},{id:'c17106',name:'午夜私語',  suffix:'106'} ],
+  18: [ {id:'c18101',name:'薄紅透瑞',  suffix:'101'} ],
+  19: [ {id:'c19101',name:'薄紅透瑞',  suffix:'101'},{id:'c19102',name:'禁忌織夢',  suffix:'102'},{id:'c19103',name:'濕身之秀',  suffix:'103'},{id:'c19104',name:'片刻歡愉',  suffix:'104'},{id:'c19106',name:'午夜私語',  suffix:'106'},{id:'c19108',name:'成名的代價',suffix:'108'} ],
+  20: [ {id:'c20101',name:'薄紅透瑞',  suffix:'101'},{id:'c20106',name:'午夜私語',  suffix:'106'} ],
+  21: [ {id:'c21101',name:'薄紅透瑞',  suffix:'101'},{id:'c21102',name:'禁忌織夢',  suffix:'102'},{id:'c21103',name:'濕身之秀',  suffix:'103'},{id:'c21104',name:'片刻歡愉',  suffix:'104'},{id:'c21106',name:'午夜私語',  suffix:'106'},{id:'c21108',name:'成名的代價',suffix:'108'} ],
+  22: [ {id:'c22101',name:'薄紅透瑞',  suffix:'101'},{id:'c22106',name:'午夜私語',  suffix:'106'},{id:'c22107',name:'幻夢曇花',  suffix:'107'} ],
+  23: [ {id:'c23101',name:'薄紅透瑞',  suffix:'101'},{id:'c23104',name:'片刻歡愉',  suffix:'104'} ],
+  24: [ {id:'c24101',name:'薄紅透瑞',  suffix:'101'},{id:'c24106',name:'午夜私語',  suffix:'106'} ],
+  25: [ {id:'c25101',name:'薄紅透瑞',  suffix:'101'},{id:'c25106',name:'午夜私語',  suffix:'106'} ],
+  26: [ {id:'c26104',name:'片刻歡愉',  suffix:'104'} ],
+  28: [ {id:'c28104',name:'片刻歡愉',  suffix:'104'} ],
+  29: [ {id:'c29104',name:'片刻歡愉',  suffix:'104'},{id:'c29106',name:'午夜私語',  suffix:'106'} ],
+  30: [ {id:'c30102',name:'禁忌織夢',  suffix:'102'},{id:'c30103',name:'濕身之秀',  suffix:'103'},{id:'c30104',name:'片刻歡愉',  suffix:'104'},{id:'c30106',name:'午夜私語',  suffix:'106'} ],
+  // id=27: 無時裝檔案；id=31: 靜態存在但無對應動態，不納入
+};
+
+function getActiveCostumeSuffix(id) {
+  const cs = getCharState(id);
+  if (!cs.activeCostume) return null;
+  const list = COSTUMES[id] || [];
+  const co = list.find(x => x.id === cs.activeCostume);
+  if (!co) return null;
+  if (!isCostumeUnlocked(id, co.id)) return null;
+  return co.suffix;
+}
+
+// id 31-35 沒有 010 滿等影片；靜態滿等各自對應 101/102
+const MAX_IMG_SUFFIX = { 31:'101', 32:'101', 33:'102', 34:'102', 35:'102' };
+
+function heroImgPath(id, isMax, suffix) {
+  const n = String(id).padStart(2,'0');
+  if (suffix) return `${IMG_BASE}Hero_${n}${suffix}.png`;
+  if (id >= 31) return `${IMG_BASE}Hero_${n}${isMax && MAX_IMG_SUFFIX[id] ? MAX_IMG_SUFFIX[id] : '000'}.png`;
+  return `${IMG_BASE}Hero_${n}${isMax ? '010' : '000'}.png`;
+}
+function heroVideoPath(id, isMax, suffix) {
+  const n = String(id).padStart(2,'0');
+  if (suffix) return `${VIDEO_BASE}Hero${n}${suffix}.mp4`;
+  if (id >= 31) return `${VIDEO_BASE}Hero${n}${isMax && MAX_IMG_SUFFIX[id] ? MAX_IMG_SUFFIX[id] : '000'}.mp4`;
+  return `${VIDEO_BASE}Hero${n}${isMax ? '010' : '000'}.mp4`;
+}
+function heroImgTag(id, isMax, cls, locked) {
+  const suffix = locked ? null : getActiveCostumeSuffix(id);
+  const src = heroImgPath(id, isMax, suffix);
+  const lockedCls = locked ? ' char-img-locked' : '';
+  return `<img src="${src}" class="char-img ${cls}${lockedCls}" alt="" onerror="this.style.display='none'">`;
+}
+function heroVideoTag(id, isMax, cls, locked) {
+  const suffix = locked ? null : getActiveCostumeSuffix(id);
+  const src = heroVideoPath(id, isMax, suffix);
+  const imgSrc = heroImgPath(id, isMax, suffix);
+  const lockedCls = locked ? ' char-img-locked' : '';
+  return `<video class="char-img ${cls}${lockedCls}" autoplay loop muted playsinline disablepictureinpicture
+    onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <source src="${src}" type="video/mp4">
+  </video><img src="${imgSrc}" class="char-img ${cls}${lockedCls}" alt="" style="display:none" onerror="this.style.display='none'">`;
+}
+
+const CHARACTERS = [
+  {id:1, name:'天道克拉拉', el:'光', rarity:'SSR'},
+  {id:2, name:'吉原玲',     el:'火', rarity:'SSR'},
+  {id:3, name:'影霧白姬',   el:'火', rarity:'SSR'},
+  {id:4, name:'維納斯',     el:'暗', rarity:'SSR'},
+  {id:5, name:'黑原讀子',   el:'暗', rarity:'SSR'},
+  {id:6, name:'朴冰雅',     el:'水', rarity:'SSR'},
+  {id:7, name:'百鬼院加奈', el:'暗', rarity:'SSR'},
+  {id:8, name:'虹村愛莉紗', el:'光', rarity:'SSR'},
+  {id:9, name:'童一蘭',     el:'草', rarity:'SR'},
+  {id:10,name:'童雙燕',     el:'草', rarity:'SR'},
+  {id:11,name:'紫野詩羽',   el:'暗', rarity:'SSR'},
+  {id:12,name:'零木尤雅',   el:'草', rarity:'SSR'},
+  {id:13,name:'火野小町',   el:'火', rarity:'SR'},
+  {id:14,name:'八神翼',     el:'光', rarity:'SR'},
+  {id:15,name:'水憐雪乃',   el:'水', rarity:'SR'},
+  {id:16,name:'伊莉紗白',   el:'草', rarity:'SSR'},
+  {id:17,name:'洛可娜',     el:'水', rarity:'SSR'},
+  {id:18,name:'古鐵焰華',   el:'火', rarity:'SR'},
+  {id:19,name:'千羽繪理',   el:'光', rarity:'SSR'},
+  {id:20,name:'霧崎奈奈',   el:'水', rarity:'SSR'},
+  {id:21,name:'聖源理香',   el:'光', rarity:'SSR'},
+  {id:22,name:'七重愛花',   el:'火', rarity:'SR'},
+  {id:23,name:'伊芙蓮',     el:'暗', rarity:'SR'},
+  {id:24,name:'亞迪莉絲雅', el:'草', rarity:'SSR'},
+  {id:25,name:'西野萌果',   el:'水', rarity:'SR'},
+  {id:26,name:'唯我光子',   el:'光', rarity:'SSR'},
+  {id:27,name:'月城冥夜',   el:'暗', rarity:'SSR'},
+  {id:28,name:'織田愛娜',   el:'暗', rarity:'SSR'},
+  {id:29,name:'藤木加蓮',   el:'光', rarity:'SSR'},
+  {id:30,name:'六道迴歌',   el:'暗', rarity:'SSR'},
+  {id:31,name:'桃井琉奈',   el:'光', rarity:'SSR'},
+  {id:32,name:'緋川炎華',   el:'火', rarity:'SSR'},
+  {id:33,name:'翠葉凜音',   el:'草', rarity:'SSR'},
+  {id:34,name:'藍澤珠那',   el:'水', rarity:'SSR'},
+  {id:35,name:'焔崎夕妃',   el:'火', rarity:'SSR'},
+];
+
+// 5段資料（按母音分組：a/i/u/e/o）
+const STAGES = [
+  { id:'dan1', name:'第1段', label:'a段', icon:'あ',
+    kana:[
+      {h:'あ',k:'ア',r:'a'}, {h:'か',k:'カ',r:'ka'},{h:'さ',k:'サ',r:'sa'},
+      {h:'た',k:'タ',r:'ta'},{h:'な',k:'ナ',r:'na'},{h:'は',k:'ハ',r:'ha'},
+      {h:'ま',k:'マ',r:'ma'},{h:'や',k:'ヤ',r:'ya'},{h:'ら',k:'ラ',r:'ra'},{h:'わ',k:'ワ',r:'wa'},
+    ]},
+  { id:'dan2', name:'第2段', label:'i段', icon:'い',
+    kana:[
+      {h:'い',k:'イ',r:'i'}, {h:'き',k:'キ',r:'ki'},{h:'し',k:'シ',r:'shi'},
+      {h:'ち',k:'チ',r:'chi'},{h:'に',k:'ニ',r:'ni'},{h:'ひ',k:'ヒ',r:'hi'},
+      {h:'み',k:'ミ',r:'mi'},{h:'り',k:'リ',r:'ri'},
+    ]},
+  { id:'dan3', name:'第3段', label:'u段', icon:'う',
+    kana:[
+      {h:'う',k:'ウ',r:'u'}, {h:'く',k:'ク',r:'ku'},{h:'す',k:'ス',r:'su'},
+      {h:'つ',k:'ツ',r:'tsu'},{h:'ぬ',k:'ヌ',r:'nu'},{h:'ふ',k:'フ',r:'fu'},
+      {h:'む',k:'ム',r:'mu'},{h:'ゆ',k:'ユ',r:'yu'},{h:'る',k:'ル',r:'ru'},
+    ]},
+  { id:'dan4', name:'第4段', label:'e段', icon:'え',
+    kana:[
+      {h:'え',k:'エ',r:'e'}, {h:'け',k:'ケ',r:'ke'},{h:'せ',k:'セ',r:'se'},
+      {h:'て',k:'テ',r:'te'},{h:'ね',k:'ネ',r:'ne'},{h:'へ',k:'ヘ',r:'he'},
+      {h:'め',k:'メ',r:'me'},{h:'れ',k:'レ',r:'re'},
+    ]},
+  { id:'dan5', name:'第5段', label:'o段', icon:'お',
+    kana:[
+      {h:'お',k:'オ',r:'o'}, {h:'こ',k:'コ',r:'ko'},{h:'そ',k:'ソ',r:'so'},
+      {h:'と',k:'ト',r:'to'},{h:'の',k:'ノ',r:'no'},{h:'ほ',k:'ホ',r:'ho'},
+      {h:'も',k:'モ',r:'mo'},{h:'よ',k:'ヨ',r:'yo'},{h:'ろ',k:'ロ',r:'ro'},
+      {h:'を',k:'ヲ',r:'wo'},{h:'ん',k:'ン',r:'n'},
+    ]},
+];
+
+// 魔王關：全50音混合
+const BOSS_STAGE = (() => {
+  const kana = STAGES.flatMap(s => s.kana);
+  return { id:'boss', name:'魔王關', label:'全段混合', icon:'👹', kana, isComp:true, isBoss:true };
+})();
+
+const BOSS2_STAGE = (() => {
+  const kana = STAGES.flatMap(s => s.kana);
+  return { id:'boss2', name:'終極魔王關', label:'平假＋片假混合', icon:'💀', kana, isComp:true, isBoss:true, isBoss2:true };
+})();
+
+// 綜合題關：C(5,3)=10 種組合
+const COMP_STAGES = (()=>{
+  const combos = [];
+  for (let a=0;a<5;a++) for (let b=a+1;b<5;b++) for (let c=b+1;c<5;c++)
+    combos.push([a,b,c]);
+  return combos.map((trio,i) => {
+    const s = trio.map(j => STAGES[j]);
+    const kana = s.flatMap(st => st.kana);
+    const labels = s.map(st => st.label).join('+');
+    const icons  = s.map(st => st.icon).join('');
+    const requires = s.map(st => st.id); // 需要通關的基礎段 id
+    return { id:`comp${i+1}`, name:`綜合 ${i+1}`, label:labels, icon:icons, kana, isComp:true, requires };
+  });
+})();
+
+// SR 角色開局解鎖
+const SR_IDS = CHARACTERS.filter(c => c.rarity === 'SR').map(c => c.id);
+// 通關後解鎖 SSR 角色（SSR 分配到各基礎段，每段 4~5 個）
+const STAGE_UNLOCKS = {
+  'dan1': [2, 3, 4, 5, 32],
+  'dan2': [6, 7, 8, 11, 33],
+  'dan3': [12, 16, 17, 19, 34],
+  'dan4': [20, 21, 24, 26, 35],
+  'dan5': [27, 28, 29, 30, 31],
+};
+
+// 每段拆成批次（每批最多5個）→ 先跑平假名批次 再跑片假名批次
+function splitBatches(kana) {
+  const n = kana.length;
+  if (n <= 5) return [kana];
+  const half = Math.ceil(n / 2);
+  return [kana.slice(0, half), kana.slice(half)];
+}
+
+function buildRounds(stage) {
+  if (stage.isComp) {
+    const batchSize = stage.isBoss2 ? 6 : 5;
+    const shuffled = shuffle([...stage.kana]);
+    const rounds = [];
+    for (let i = 0; i < shuffled.length; i += batchSize) {
+      const batch = shuffled.slice(i, i + batchSize);
+      rounds.push({ label:`${stage.label} (${Math.floor(i/batchSize)+1})`, script:'mixed', kanaSet:batch });
+    }
+    return rounds;
+  }
+  const batches = splitBatches(shuffle([...stage.kana]));
+  const rounds = [];
+  batches.forEach((batch, i) =>
+    rounds.push({ label:`${stage.label} 平假名 (${i+1}/${batches.length})`, script:'hira', kanaSet:batch })
+  );
+  batches.forEach((batch, i) =>
+    rounds.push({ label:`${stage.label} 片假名 (${i+1}/${batches.length})`, script:'kata', kanaSet:batch })
+  );
+  return rounds;
+}
+
+const EXP_PER_LEVEL = 100;
+const MAX_LEVEL = 20;
+const MAX_HP = 3;
+const EXP_PER_CORRECT = 15;
+const EXP_COMBO_BONUS = 5;
+
+// ══════════════════════════════════════════
+//  遊戲狀態
+// ══════════════════════════════════════════
+let gs = {
+  activeCharId: 1,
+  chars: {},
+  stageClears: {},
+  totalMatches: 0,
+  achievements: {},
+  costumes: {},
+  maxComboEver: 0,
+  totalClears: 0,
+  perfectClears: 0,
+  totalExpEarned: 0,
+  kanaMistakes: {},
+};
+
+let game = {
+  stageId: null,
+  stage: null,
+  rounds: [],
+  roundIdx: 0,
+  hp: MAX_HP,
+  combo: 0,
+  matched: 0,
+  expGained: 0,
+  mistakes: 0,
+  selectedKana: null,
+  selectedRoma: null,
+  locked: false,
+  kanaSet: [],
+};
+
+let modalTargetId = null;
+
+// ══════════════════════════════════════════
+//  成就定義
+// ══════════════════════════════════════════
+const ACHIEVEMENTS = [
+  // ── 學習 ──
+  { id:'first_match',    name:'初次配對',      icon:'🎯', desc:'完成第一次配對',           cond:'在任意關卡成功配對一次',                cat:'學習', reward:'c01101' },
+  { id:'clear_dan1',     name:'初學者',         icon:'📖', desc:'通關第1段',               cond:'完成第1段（a段）所有回合',              cat:'學習', reward:'c01102' },
+  { id:'clear_all_base', name:'五十音掌握者',   icon:'🏆', desc:'通關全5段基礎關',         cond:'通關全部5個基礎段關卡',                cat:'學習', reward:'c01103' },
+  { id:'clear_all_comp', name:'綜合高手',       icon:'🌟', desc:'通關全10個綜合題關',      cond:'通關全部10個3段組合綜合題關',          cat:'學習', reward:'c01104' },
+  { id:'clear_boss',     name:'魔王終結者',     icon:'👑', desc:'通關魔王關',              cond:'通關全50音混合魔王關（需先解鎖）',     cat:'學習', reward:'c01106' },
+  // ── 連擊 ──
+  { id:'combo5',         name:'連擊達人',       icon:'🔥', desc:'單回合達成5連擊',         cond:'連續正確配對5次不失誤',               cat:'連擊', reward:'c01108' },
+  { id:'combo10',        name:'連擊王者',       icon:'⚡', desc:'單回合達成10連擊',        cond:'連續正確配對10次不失誤',              cat:'連擊', reward:'c02101' },
+  { id:'combo_max',      name:'無懈可擊',       icon:'💥', desc:'單回合全程零失誤完成',    cond:'一個回合內完全沒有失誤地配對所有牌組', cat:'連擊', reward:'c02102' },
+  // ── 配對 ──
+  { id:'match_50',       name:'配對新手',       icon:'✨', desc:'累計配對成功50次',        cond:'遊戲累計配對成功達50次',              cat:'配對', reward:'c02103' },
+  { id:'match_200',      name:'配對老手',       icon:'💫', desc:'累計配對成功200次',       cond:'遊戲累計配對成功達200次',             cat:'配對', reward:'c02104' },
+  { id:'match_500',      name:'配對大師',       icon:'🌙', desc:'累計配對成功500次',       cond:'遊戲累計配對成功達500次',             cat:'配對', reward:'c02106' },
+  // ── 完美 ──
+  { id:'perfect_base',   name:'完美學習',       icon:'⭐', desc:'零失誤通關任意基礎段',   cond:'通關任意基礎段，全程沒有任何失誤',    cat:'完美', reward:'c03101' },
+  { id:'perfect_comp',   name:'完美綜合',       icon:'🌠', desc:'零失誤通關任意綜合題關', cond:'通關任意綜合題關，全程沒有任何失誤',  cat:'完美', reward:'c03105' },
+  { id:'perfect_boss',   name:'魔王剋星',       icon:'👹', desc:'零失誤通關魔王關',       cond:'通關魔王關，全程沒有任何失誤',        cat:'完美', reward:'c03106' },
+  // ── 角色 ──
+  { id:'unlock_10',      name:'開始收藏',       icon:'👥', desc:'解鎖10個角色',            cond:'通關關卡累積解鎖10個角色',            cat:'角色', reward:'c03107' },
+  { id:'unlock_20',      name:'人氣收藏家',     icon:'💝', desc:'解鎖20個角色',            cond:'通關關卡累積解鎖20個角色',            cat:'角色', reward:'c04101' },
+  { id:'unlock_all',     name:'全員集結',       icon:'🎪', desc:'解鎖全31個角色',          cond:'通關所有關卡，解鎖全部31名角色',      cat:'角色', reward:'c04104' },
+  { id:'lv10',           name:'成長之路',       icon:'💪', desc:'任意角色升至LV.10',      cond:'讓任意一名角色升級至LV.10',           cat:'角色', reward:'c04105' },
+  { id:'lv_max',         name:'滿等傳說',       icon:'🏅', desc:'任意角色升至LV.20(MAX)', cond:'讓任意一名角色升至最高等級LV.20',    cat:'角色', reward:'c04106' },
+  { id:'active_swap',    name:'換個心情',       icon:'🔄', desc:'更換主角',                cond:'在角色圖鑑中將主角更換為其他角色',    cat:'角色', reward:'c04108' },
+  // ── 星級通關 ──
+  { id:'star3_dan1',     name:'a段全制霸',      icon:'🌟', desc:'3星通關第1段',            cond:'以零失誤通關第1段（a段）',            cat:'星級', reward:'c05101' },
+  { id:'star3_dan2',     name:'i段全制霸',      icon:'🌟', desc:'3星通關第2段',            cond:'以零失誤通關第2段（i段）',            cat:'星級', reward:'c05102' },
+  { id:'star3_dan3',     name:'u段全制霸',      icon:'🌟', desc:'3星通關第3段',            cond:'以零失誤通關第3段（u段）',            cat:'星級', reward:'c05103' },
+  { id:'star3_dan4',     name:'e段全制霸',      icon:'🌟', desc:'3星通關第4段',            cond:'以零失誤通關第4段（e段）',            cat:'星級', reward:'c05104' },
+  { id:'star3_dan5',     name:'o段全制霸',      icon:'🌟', desc:'3星通關第5段',            cond:'以零失誤通關第5段（o段）',            cat:'星級', reward:'c05106' },
+  { id:'star3_all_base', name:'基礎滿星王',     icon:'⭐', desc:'全部基礎段3星',           cond:'5個基礎段全部獲得3星評分',            cat:'星級', reward:'c05108' },
+  { id:'star3_any_comp', name:'綜合初星',       icon:'🌠', desc:'任意綜合段3星',           cond:'任意一個綜合題關獲得3星評分',         cat:'星級', reward:'c06101' },
+  { id:'star3_5comp',    name:'綜合半星王',     icon:'🌠', desc:'5個綜合段3星',            cond:'5個以上的綜合題關獲得3星評分',        cat:'星級', reward:'c06106' },
+  { id:'star3_all_comp', name:'綜合滿星王',     icon:'🏆', desc:'全部綜合段3星',           cond:'10個綜合題關全部獲得3星評分',         cat:'星級', reward:'c07101' },
+  { id:'star3_boss',     name:'魔王完全制霸',   icon:'👑', desc:'魔王關3星',               cond:'零失誤通關魔王關獲得3星評分',         cat:'星級', reward:'c07102' },
+  // ── 配對里程碑 ──
+  { id:'match_1000',     name:'千次配對',       icon:'✨', desc:'累計配對成功1000次',      cond:'遊戲累計配對成功達1000次',            cat:'配對', reward:'c07103' },
+  { id:'match_2000',     name:'兩千配對',       icon:'💫', desc:'累計配對成功2000次',      cond:'遊戲累計配對成功達2000次',            cat:'配對', reward:'c07104' },
+  { id:'match_3000',     name:'配對狂熱',       icon:'🌙', desc:'累計配對成功3000次',      cond:'遊戲累計配對成功達3000次',            cat:'配對', reward:'c07106' },
+  { id:'match_5000',     name:'配對宗師',       icon:'🌙', desc:'累計配對成功5000次',      cond:'遊戲累計配對成功達5000次',            cat:'配對', reward:'c07108' },
+  { id:'match_10000',    name:'配對神話',       icon:'🌙', desc:'累計配對成功10000次',     cond:'遊戲累計配對成功達10000次',           cat:'配對', reward:'c08101' },
+  // ── 進階連擊 ──
+  { id:'combo15',        name:'連擊名人',       icon:'🔥', desc:'單回合達成15連擊',        cond:'連續正確配對15次不失誤',              cat:'連擊', reward:'c08102' },
+  { id:'combo20',        name:'連擊之神',       icon:'⚡', desc:'單回合達成20連擊',        cond:'連續正確配對20次不失誤',              cat:'連擊', reward:'c08103' },
+  { id:'combo25',        name:'無限連擊',       icon:'💥', desc:'單回合達成25連擊',        cond:'連續正確配對25次不失誤',              cat:'連擊', reward:'c08104' },
+  // ── 累計通關 ──
+  { id:'clears10',       name:'常客',           icon:'🗺️', desc:'累計通關10次',            cond:'累計成功通關關卡10次',                cat:'學習', reward:'c08106' },
+  { id:'clears30',       name:'冒險老手',       icon:'⚔️', desc:'累計通關30次',            cond:'累計成功通關關卡30次',                cat:'學習', reward:'c11101' },
+  { id:'clears50',       name:'百戰英雄',       icon:'🛡️', desc:'累計通關50次',            cond:'累計成功通關關卡50次',                cat:'學習', reward:'c11102' },
+  { id:'clears100',      name:'傳奇冒險家',     icon:'🌍', desc:'累計通關100次',           cond:'累計成功通關關卡100次',               cat:'學習', reward:'c11103' },
+  // ── 累計完美 ──
+  { id:'perfect5',       name:'完美五連',       icon:'⭐', desc:'累計5次零失誤通關',       cond:'累計達成5次完全無失誤通關',           cat:'完美', reward:'c11104' },
+  { id:'perfect10',      name:'完美十連',       icon:'🌟', desc:'累計10次零失誤通關',      cond:'累計達成10次完全無失誤通關',          cat:'完美', reward:'c11105' },
+  { id:'perfect20',      name:'完美達人',       icon:'🌠', desc:'累計20次零失誤通關',      cond:'累計達成20次完全無失誤通關',          cat:'完美', reward:'c11106' },
+  { id:'perfect30',      name:'完美傳說',       icon:'💫', desc:'累計30次零失誤通關',      cond:'累計達成30次完全無失誤通關',          cat:'完美', reward:'c11108' },
+  // ── 角色養成進階 ──
+  { id:'lv5_any',        name:'初露鋒芒',       icon:'💪', desc:'任意角色達LV.5',          cond:'讓任意一名角色升至LV.5',              cat:'角色', reward:'c12101' },
+  { id:'lv15_any',       name:'傳說之路',       icon:'🏅', desc:'任意角色達LV.15',         cond:'讓任意一名角色升至LV.15',             cat:'角色', reward:'c12105' },
+  { id:'chars3_lv10',    name:'精英三人組',     icon:'👥', desc:'3個角色達LV.10',          cond:'讓3名角色升至LV.10以上',              cat:'角色', reward:'c12106' },
+  { id:'chars5_lv10',    name:'精英小隊',       icon:'💝', desc:'5個角色達LV.10',          cond:'讓5名角色升至LV.10以上',              cat:'角色', reward:'c16101' },
+  { id:'chars10_lv10',   name:'精英之師',       icon:'🎪', desc:'10個角色達LV.10',         cond:'讓10名角色升至LV.10以上',             cat:'角色', reward:'c16106' },
+  { id:'chars15_lv10',   name:'強者陣容',       icon:'🔥', desc:'15個角色達LV.10',         cond:'讓15名角色升至LV.10以上',             cat:'角色', reward:'c17101' },
+  { id:'chars20_lv10',   name:'強者雲集',       icon:'⚡', desc:'20個角色達LV.10',         cond:'讓20名角色升至LV.10以上',             cat:'角色', reward:'c17106' },
+  { id:'chars_all_lv10', name:'全員精英',       icon:'🌟', desc:'全部角色達LV.10',         cond:'讓全部31名角色升至LV.10以上',         cat:'角色', reward:'c19101' },
+  { id:'chars3_lv15',    name:'傳說先鋒',       icon:'⭐', desc:'3個角色達LV.15',          cond:'讓3名角色升至LV.15以上',              cat:'角色', reward:'c19102' },
+  { id:'chars5_lv15',    name:'傳說小隊',       icon:'🌠', desc:'5個角色達LV.15',          cond:'讓5名角色升至LV.15以上',              cat:'角色', reward:'c19103' },
+  { id:'chars10_lv15',   name:'傳說陣容',       icon:'💫', desc:'10個角色達LV.15',         cond:'讓10名角色升至LV.15以上',             cat:'角色', reward:'c19104' },
+  { id:'chars20_lv15',   name:'傳說雲集',       icon:'🌙', desc:'20個角色達LV.15',         cond:'讓20名角色升至LV.15以上',             cat:'角色', reward:'c19106' },
+  { id:'chars3_max',     name:'傳說三傑',       icon:'🏆', desc:'3個角色達MAX',            cond:'讓3名角色升至最高等級LV.20',          cat:'角色', reward:'c19108' },
+  { id:'chars5_max',     name:'傳說戰隊',       icon:'👑', desc:'5個角色達MAX',            cond:'讓5名角色升至最高等級LV.20',          cat:'角色', reward:'c20101' },
+  { id:'chars10_max',    name:'傳說集結',       icon:'🎯', desc:'10個角色達MAX',           cond:'讓10名角色升至最高等級LV.20',         cat:'角色', reward:'c20106' },
+  { id:'chars20_max',    name:'傳說軍團',       icon:'📖', desc:'20個角色達MAX',           cond:'讓20名角色升至最高等級LV.20',         cat:'角色', reward:'c21101' },
+  // ── 時裝收藏 ──
+  { id:'cos5_ssr',       name:'時裝入門',       icon:'👗', desc:'解鎖5件SSR時裝',          cond:'通過成就解鎖5件SSR角色時裝',          cat:'時裝', reward:'c21102' },
+  { id:'cos10_ssr',      name:'時裝愛好者',     icon:'👘', desc:'解鎖10件SSR時裝',         cond:'通過成就解鎖10件SSR角色時裝',         cat:'時裝', reward:'c21103' },
+  { id:'cos20_ssr',      name:'時裝達人',       icon:'💎', desc:'解鎖20件SSR時裝',         cond:'通過成就解鎖20件SSR角色時裝',         cat:'時裝', reward:'c21104' },
+  { id:'cos30_ssr',      name:'時裝狂熱者',     icon:'✨', desc:'解鎖30件SSR時裝',         cond:'通過成就解鎖30件SSR角色時裝',         cat:'時裝', reward:'c21106' },
+  { id:'cos50_ssr',      name:'時裝大師',       icon:'🌟', desc:'解鎖50件SSR時裝',         cond:'通過成就解鎖50件SSR角色時裝',         cat:'時裝', reward:'c21108' },
+  { id:'cos_all_ssr',    name:'時裝傳說',       icon:'👑', desc:'解鎖全部SSR時裝',         cond:'通過成就解鎖全部76件SSR角色時裝',     cat:'時裝', reward:'c24101' },
+  // ── 累計EXP ──
+  { id:'exp5000',        name:'修煉者',         icon:'💡', desc:'累計獲得5000 EXP',         cond:'角色養成累計獲得5000 EXP',            cat:'角色', reward:'c24106' },
+  { id:'exp20000',       name:'修煉高手',       icon:'🔮', desc:'累計獲得20000 EXP',        cond:'角色養成累計獲得20000 EXP',           cat:'角色', reward:'c26104' },
+  { id:'exp50000',       name:'修煉大師',       icon:'⚗️', desc:'累計獲得50000 EXP',        cond:'角色養成累計獲得50000 EXP',           cat:'角色', reward:'c28104' },
+  { id:'exp100000',      name:'修煉傳說',       icon:'🌌', desc:'累計獲得100000 EXP',       cond:'角色養成累計獲得100000 EXP',          cat:'角色', reward:'c29104' },
+  // ── 全角色成長 ──
+  { id:'chars_all_lv5',  name:'全員出動',       icon:'🎮', desc:'全部角色達LV.5',          cond:'讓全部31名角色升至LV.5以上',          cat:'角色', reward:'c29106' },
+  { id:'chars15_max',    name:'半滿神話',       icon:'🏅', desc:'15個角色達MAX',           cond:'讓15名角色升至最高等級LV.20',         cat:'角色', reward:'c30102' },
+  { id:'chars25_max',    name:'神話陣容',       icon:'🌠', desc:'25個角色達MAX',           cond:'讓25名角色升至最高等級LV.20',         cat:'角色', reward:'c30103' },
+  { id:'chars_all_lv15', name:'全員超凡',       icon:'🌟', desc:'全部角色達LV.15',         cond:'讓全部31名角色升至LV.15以上',         cat:'角色', reward:'c30104' },
+  { id:'chars_all_max',  name:'神話軍團',       icon:'👑', desc:'全部角色達MAX',           cond:'讓全部31名角色升至最高等級LV.20',     cat:'角色', reward:'c30106' },
+];
+
+// ══════════════════════════════════════════
+//  成就系統
+// ══════════════════════════════════════════
+let achPopTimer = null;
+function unlockAchievement(id) {
+  if (gs.achievements[id]) return;
+  gs.achievements[id] = true;
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  if (a.reward) {
+    if (!gs.costumes) gs.costumes = {};
+    gs.costumes[a.reward] = true;
+  }
+  showAchievementPopup(a);
+}
+
+function isCostumeUnlocked(charId, costumeId) {
+  const c = getChar(charId);
+  if (c && c.rarity === 'SR') return true;
+  return !!(gs.costumes && gs.costumes[costumeId]);
+}
+
+function countUnlockedSSRCostumes() {
+  let n = 0;
+  CHARACTERS.filter(c => c.rarity === 'SSR').forEach(c => {
+    (COSTUMES[c.id] || []).forEach(co => { if (gs.costumes && gs.costumes[co.id]) n++; });
+  });
+  return n;
+}
+
+function showAchievementPopup(a) {
+  const pop = document.getElementById('achievement-popup');
+  pop.querySelector('.ach-pop-icon').textContent = a.icon;
+  pop.querySelector('.ach-pop-name').textContent = a.name;
+  pop.querySelector('.ach-pop-desc').textContent = a.desc;
+  pop.classList.add('show');
+  if (achPopTimer) clearTimeout(achPopTimer);
+  achPopTimer = setTimeout(() => pop.classList.remove('show'), 3500);
+}
+
+function checkAchievements(ctx = {}) {
+  const M = gs.totalMatches;
+  // 學習
+  if (M >= 1) unlockAchievement('first_match');
+  if (gs.stageClears['dan1']) unlockAchievement('clear_dan1');
+  if (STAGES.every(s => gs.stageClears[s.id])) unlockAchievement('clear_all_base');
+  if (COMP_STAGES.every(s => gs.stageClears[s.id])) unlockAchievement('clear_all_comp');
+  if (gs.stageClears['boss']) unlockAchievement('clear_boss');
+  // 星級通關
+  STAGES.forEach(s => { if (gs.stageClears[s.id]?.stars === 3) unlockAchievement('star3_' + s.id); });
+  if (STAGES.every(s => gs.stageClears[s.id]?.stars === 3)) unlockAchievement('star3_all_base');
+  const comp3 = COMP_STAGES.filter(s => gs.stageClears[s.id]?.stars === 3).length;
+  if (comp3 >= 1)  unlockAchievement('star3_any_comp');
+  if (comp3 >= 5)  unlockAchievement('star3_5comp');
+  if (comp3 >= 10) unlockAchievement('star3_all_comp');
+  if (gs.stageClears['boss']?.stars === 3) unlockAchievement('star3_boss');
+  // 連擊
+  const cb = gs.maxComboEver;
+  if (cb >= 5)  unlockAchievement('combo5');
+  if (cb >= 10) unlockAchievement('combo10');
+  if (cb >= 15) unlockAchievement('combo15');
+  if (cb >= 20) unlockAchievement('combo20');
+  if (cb >= 25) unlockAchievement('combo25');
+  if (ctx.perfectRound) unlockAchievement('combo_max');
+  // 配對數
+  if (M >= 50)    unlockAchievement('match_50');
+  if (M >= 200)   unlockAchievement('match_200');
+  if (M >= 500)   unlockAchievement('match_500');
+  if (M >= 1000)  unlockAchievement('match_1000');
+  if (M >= 2000)  unlockAchievement('match_2000');
+  if (M >= 3000)  unlockAchievement('match_3000');
+  if (M >= 5000)  unlockAchievement('match_5000');
+  if (M >= 10000) unlockAchievement('match_10000');
+  // 完美通關
+  if (ctx.perfectClear) {
+    const sid = ctx.stageId;
+    if (STAGES.find(s => s.id === sid))      unlockAchievement('perfect_base');
+    if (COMP_STAGES.find(s => s.id === sid)) unlockAchievement('perfect_comp');
+    if (sid === 'boss')                       unlockAchievement('perfect_boss');
+  }
+  // 累計完美
+  const pc = gs.perfectClears || 0;
+  if (pc >= 5)  unlockAchievement('perfect5');
+  if (pc >= 10) unlockAchievement('perfect10');
+  if (pc >= 20) unlockAchievement('perfect20');
+  if (pc >= 30) unlockAchievement('perfect30');
+  // 累計通關
+  const tc = gs.totalClears || 0;
+  if (tc >= 10)  unlockAchievement('clears10');
+  if (tc >= 30)  unlockAchievement('clears30');
+  if (tc >= 50)  unlockAchievement('clears50');
+  if (tc >= 100) unlockAchievement('clears100');
+  // 角色解鎖
+  const uc = unlockedCount();
+  if (uc >= 10) unlockAchievement('unlock_10');
+  if (uc >= 20) unlockAchievement('unlock_20');
+  if (uc >= CHARACTERS.length) unlockAchievement('unlock_all');
+  // 角色等級
+  const lvArr = Object.values(gs.chars).filter(c => c.unlocked).map(c => c.lv);
+  const maxLv = Math.max(...lvArr, 0);
+  const lv5c  = lvArr.filter(l => l >= 5).length;
+  const lv10c = lvArr.filter(l => l >= 10).length;
+  const lv15c = lvArr.filter(l => l >= 15).length;
+  const maxc  = lvArr.filter(l => l >= MAX_LEVEL).length;
+  const total = CHARACTERS.length;
+  if (maxLv >= 5)        unlockAchievement('lv5_any');
+  if (maxLv >= 10)       unlockAchievement('lv10');
+  if (maxLv >= 15)       unlockAchievement('lv15_any');
+  if (maxLv >= MAX_LEVEL) unlockAchievement('lv_max');
+  if (lv10c >= 3)   unlockAchievement('chars3_lv10');
+  if (lv10c >= 5)   unlockAchievement('chars5_lv10');
+  if (lv10c >= 10)  unlockAchievement('chars10_lv10');
+  if (lv10c >= 15)  unlockAchievement('chars15_lv10');
+  if (lv10c >= 20)  unlockAchievement('chars20_lv10');
+  if (lv10c >= total) unlockAchievement('chars_all_lv10');
+  if (lv15c >= 3)   unlockAchievement('chars3_lv15');
+  if (lv15c >= 5)   unlockAchievement('chars5_lv15');
+  if (lv15c >= 10)  unlockAchievement('chars10_lv15');
+  if (lv15c >= 20)  unlockAchievement('chars20_lv15');
+  if (lv15c >= total) unlockAchievement('chars_all_lv15');
+  if (lv5c >= total)  unlockAchievement('chars_all_lv5');
+  if (maxc >= 3)   unlockAchievement('chars3_max');
+  if (maxc >= 5)   unlockAchievement('chars5_max');
+  if (maxc >= 10)  unlockAchievement('chars10_max');
+  if (maxc >= 15)  unlockAchievement('chars15_max');
+  if (maxc >= 20)  unlockAchievement('chars20_max');
+  if (maxc >= 25)  unlockAchievement('chars25_max');
+  if (maxc >= total) unlockAchievement('chars_all_max');
+  if (ctx.swapped) unlockAchievement('active_swap');
+  // SSR時裝收藏
+  const sc = countUnlockedSSRCostumes();
+  if (sc >= 5)  unlockAchievement('cos5_ssr');
+  if (sc >= 10) unlockAchievement('cos10_ssr');
+  if (sc >= 20) unlockAchievement('cos20_ssr');
+  if (sc >= 30) unlockAchievement('cos30_ssr');
+  if (sc >= 50) unlockAchievement('cos50_ssr');
+  if (sc >= 76) unlockAchievement('cos_all_ssr');
+  // 累計EXP
+  const te = gs.totalExpEarned || 0;
+  if (te >= 5000)   unlockAchievement('exp5000');
+  if (te >= 20000)  unlockAchievement('exp20000');
+  if (te >= 50000)  unlockAchievement('exp50000');
+  if (te >= 100000) unlockAchievement('exp100000');
+}
+
+let achFilterCat = '全部';
+function renderAchievements() {
+  const cats = ['全部', ...new Set(ACHIEVEMENTS.map(a => a.cat))];
+  document.getElementById('ach-tabs').innerHTML = cats.map(c =>
+    `<div class="ach-tab${c === achFilterCat ? ' active' : ''}" onclick="setAchTab('${c}')">${c}</div>`
+  ).join('');
+  const list = achFilterCat === '全部' ? ACHIEVEMENTS : ACHIEVEMENTS.filter(a => a.cat === achFilterCat);
+  const unlocked = list.filter(a => gs.achievements[a.id]);
+  const locked   = list.filter(a => !gs.achievements[a.id]);
+  document.getElementById('ach-count').textContent =
+    `已解鎖 ${Object.keys(gs.achievements).length} / ${ACHIEVEMENTS.length}`;
+  document.getElementById('ach-list').innerHTML = [...unlocked, ...locked].map(a => {
+    const done = !!gs.achievements[a.id];
+    let rewardLine = '';
+    if (a.reward) {
+      const cid = parseInt(a.reward.substring(1, 3));
+      const co  = (COSTUMES[cid] || []).find(x => x.id === a.reward);
+      const ch  = getChar(cid);
+      if (co && ch) {
+        const gotIt = done || isCostumeUnlocked(cid, a.reward);
+        rewardLine = `<div class="ach-reward ${gotIt ? 'got' : ''}">${gotIt ? '👗' : '🔒'} ${ch.name}「${co.name}」</div>`;
+      }
+    }
+    return `<div class="ach-item ${done ? 'unlocked' : 'locked-ach'}">
+      <div class="ach-item-icon">${a.icon}</div>
+      <div class="ach-item-body">
+        <div class="ach-item-name">${done ? a.name : '???'}</div>
+        <div class="ach-item-desc">${done ? a.desc : `🔑 ${a.cond}`}</div>
+        ${rewardLine}
+      </div>
+      <div class="ach-item-check">${done ? '✅' : '🔒'}</div>
+    </div>`;
+  }).join('');
+}
+function setAchTab(cat) { achFilterCat = cat; renderAchievements(); }
+
+// ══════════════════════════════════════════
+//  存檔系統
+// ══════════════════════════════════════════
+function saveGame() {
+  localStorage.setItem('hiragana_quest', JSON.stringify(gs));
+}
+function loadGame() {
+  const data = localStorage.getItem('hiragana_quest');
+  if (data) {
+    gs = JSON.parse(data);
+    if (!gs.achievements)    gs.achievements    = {};
+    if (!gs.costumes)        gs.costumes        = {};
+    if (!gs.maxComboEver)    gs.maxComboEver    = 0;
+    if (!gs.totalClears)     gs.totalClears     = 0;
+    if (!gs.perfectClears)   gs.perfectClears   = 0;
+    if (!gs.totalExpEarned)  gs.totalExpEarned  = 0;
+    if (!gs.kanaMistakes)    gs.kanaMistakes    = {};
+  } else {
+    // 初始化
+    CHARACTERS.forEach(c => {
+      const startUnlocked = c.id === 1 || c.rarity === 'SR';
+      gs.chars[c.id] = { lv: 1, exp: 0, unlocked: startUnlocked };
+    });
+    saveGame();
+  }
+  // 補上：確保所有 SR 對舊存檔也解鎖
+  SR_IDS.forEach(id => {
+    if (!gs.chars[id]) gs.chars[id] = { lv:1, exp:0, unlocked:true };
+    else gs.chars[id].unlocked = true;
+    // SR 時裝預設全解鎖
+    (COSTUMES[id] || []).forEach(co => { gs.costumes[co.id] = true; });
+  });
+}
+
+// ══════════════════════════════════════════
+//  工具函式
+// ══════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'home') renderHome();
+  if (name === 'collection') renderCollection();
+  if (name === 'stages') renderStages();
+  if (name === 'achievements') renderAchievements();
+}
+
+function showToast(msg, duration = 2000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function getChar(id) { return CHARACTERS.find(c => c.id === id); }
+function getCharState(id) { return gs.chars[id] || { lv:1, exp:0, unlocked:false }; }
+function getCharEmoji(c) { return ELEMENT_EMOJI[c.el]; }
+function expForLevel(lv) { return EXP_PER_LEVEL * lv; }
+function expPercent(id) {
+  const cs = getCharState(id);
+  if (cs.lv >= MAX_LEVEL) return 100;
+  return Math.round(cs.exp / expForLevel(cs.lv) * 100);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function unlockedCount() {
+  return Object.values(gs.chars).filter(c => c.unlocked).length;
+}
+
+// ══════════════════════════════════════════
+//  標題畫面
+// ══════════════════════════════════════════
+function renderTitle() {
+  const preview = [1, 6, 11, 17, 21];
+  const container = document.getElementById('title-chars');
+  container.innerHTML = preview.map((id, i) => {
+    const c = getChar(id);
+    return `<img src="${heroImgPath(id, false)}" class="char-img-title" style="animation-delay:${i*0.5}s;border:2px solid var(--el-color,#555);box-shadow:0 0 12px #00000088" alt="${c.name}">`;
+  }).join('');
+}
+
+function startGame() {
+  loadGame();
+  showScreen('home');
+}
+
+// ══════════════════════════════════════════
+//  主頁
+// ══════════════════════════════════════════
+function renderHome() {
+  const c = getChar(gs.activeCharId);
+  const cs = getCharState(gs.activeCharId);
+  document.getElementById('home-char-card').className = `home-char-banner`;
+  document.getElementById('home-char-bg').innerHTML = heroVideoTag(gs.activeCharId, cs.lv >= MAX_LEVEL, '', false);
+  document.getElementById('home-char-name').innerHTML =
+    `<span class="el-${c.el}">${c.name}</span><br><span class="rarity-${c.rarity.toLowerCase()}">${c.rarity}</span>`;
+  document.getElementById('home-char-lv').textContent = `LV. ${cs.lv}`;
+  document.getElementById('home-exp-bar').style.width = expPercent(gs.activeCharId) + '%';
+  document.getElementById('home-exp-text').textContent =
+    cs.lv >= MAX_LEVEL ? 'MAX LEVEL' : `${cs.exp} / ${expForLevel(cs.lv)} EXP`;
+  document.getElementById('stat-stages').textContent = Object.keys(gs.stageClears).length;
+  document.getElementById('stat-chars').textContent = unlockedCount();
+  document.getElementById('stat-matches').textContent = gs.totalMatches;
+}
+
+// ══════════════════════════════════════════
+//  角色圖鑑
+// ══════════════════════════════════════════
+function renderCollection() {
+  const total = unlockedCount();
+  document.getElementById('col-count').textContent = `已收集 ${total} / ${CHARACTERS.length}`;
+  const grid = document.getElementById('collection-grid');
+  grid.innerHTML = CHARACTERS.map(c => {
+    const cs = getCharState(c.id);
+    const locked = !cs.unlocked;
+    return `<div class="col-card bg-${c.el} ${locked ? 'locked' : ''}" onclick="${locked ? '' : `openModal(${c.id})`}">
+      ${gs.activeCharId === c.id && !locked ? '<div class="active-badge">主角</div>' : ''}
+      ${heroImgTag(c.id, cs.lv >= MAX_LEVEL, 'char-img-md', locked)}
+      <div class="c-name el-${c.el}">${locked ? '???' : c.name}</div>
+      <div class="c-lv rarity-${c.rarity.toLowerCase()}">${locked ? '???' : `${c.rarity} LV.${cs.lv}`}</div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(id) {
+  const c = getChar(id);
+  const cs = getCharState(id);
+  modalTargetId = id;
+  const card = document.getElementById('modal-card-inner');
+  card.className = `modal-card bg-${c.el}`;
+  document.getElementById('modal-name').innerHTML = `<span class="el-${c.el}">${c.name}</span>`;
+  renderModalCostumes(id);
+  document.getElementById('modal-char').classList.add('active');
+  refreshModalBg(id);
+}
+
+function renderModalCostumes(id) {
+  const charCostumes = COSTUMES[id] || [];
+  const wrap = document.getElementById('modal-costume-wrap');
+  const row  = document.getElementById('modal-costume-row');
+  if (charCostumes.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const cs = getCharState(id);
+  const active = cs.activeCostume || 'default';
+  const isMax  = cs.lv >= MAX_LEVEL;
+  const defaultThumb = heroImgPath(id, isMax, null);
+  const cards = [
+    { id:'default', name:'預設', thumb: defaultThumb },
+    ...charCostumes.map(co => ({ id: co.id, name: co.name, thumb: heroImgPath(id, false, co.suffix) })),
+  ];
+  row.innerHTML = cards.map(co => {
+    const locked = co.id !== 'default' && !isCostumeUnlocked(id, co.id);
+    return `<div class="costume-card ${co.id === active ? 'active' : ''} ${locked ? 'cos-locked' : ''}"
+       onclick="${locked ? '' : `switchCostume(${id},'${co.id}')`}">
+       <img class="cos-thumb" src="${co.thumb}" onerror="this.style.opacity='.3'">
+       <div class="cos-name">${locked ? '🔒' : co.name}</div>
+     </div>`;
+  }).join('');
+}
+
+function switchCostume(charId, costumeId) {
+  if (!gs.chars[charId]) gs.chars[charId] = { lv:1, exp:0, unlocked:true };
+  gs.chars[charId].activeCostume = costumeId === 'default' ? null : costumeId;
+  saveGame();
+  renderModalCostumes(charId);
+  refreshModalBg(charId);
+  if (gs.activeCharId === charId) renderHome();
+  renderCollection();
+}
+
+function refreshModalBg(id) {
+  const cs = getCharState(id);
+  document.getElementById('modal-bg').innerHTML = heroVideoTag(id, cs.lv >= MAX_LEVEL, '', false);
+}
+
+function closeModal() {
+  document.getElementById('modal-char').classList.remove('active');
+}
+
+function setActiveChar() {
+  gs.activeCharId = modalTargetId;
+  checkAchievements({ swapped: true });
+  saveGame();
+  closeModal();
+  renderCollection();
+  showToast(`已設定 ${getChar(modalTargetId).name} 為主角！`);
+}
+
+// ══════════════════════════════════════════
+//  關卡選擇
+// ══════════════════════════════════════════
+function renderStages() {
+  // 基礎5段
+  document.getElementById('stage-grid').innerHTML = STAGES.map((s, idx) => {
+    const cleared = gs.stageClears[s.id];
+    const locked = idx > 0 && !gs.stageClears[STAGES[idx-1].id];
+    const stars = cleared ? '⭐'.repeat(cleared.stars) + '☆'.repeat(3-cleared.stars) : '☆☆☆';
+    return `<div class="stage-btn ${locked?'locked':''} ${cleared?'completed':''}"
+      onclick="${locked?'':` enterStage('${s.id}')`}">
+      <div class="stage-hira">${s.icon}</div>
+      <div class="stage-name">${s.name}</div>
+      <div style="font-size:10px;color:#aaa">${s.label}</div>
+      <div class="stage-stars">${stars}</div>
+    </div>`;
+  }).join('');
+
+  // 魔王關（需全10綜合題通關才解鎖）
+  const allBase = STAGES.every(s => gs.stageClears[s.id]);
+  const allComp = COMP_STAGES.every(s => gs.stageClears[s.id]);
+  const bossCleared = gs.stageClears['boss'];
+  const bossSection = document.getElementById('boss-section');
+  bossSection.style.display = allBase ? 'flex' : 'none';
+  document.getElementById('boss-lock-msg').style.display = allComp ? 'none' : 'block';
+  const bossStars = bossCleared ? '⭐'.repeat(bossCleared.stars) + '☆'.repeat(3-bossCleared.stars) : '☆☆☆';
+  document.getElementById('boss-btn-wrap').innerHTML = `
+    <div class="stage-btn boss-btn ${allComp?'':'locked'} ${bossCleared?'completed':''}"
+      onclick="${allComp ? "enterStage('boss')" : ''}">
+      <div style="font-size:36px">👹</div>
+      <div class="stage-name" style="color:#ff6b6b">全段魔王</div>
+      <div style="font-size:9px;color:#aaa">全50音混合出題</div>
+      <div class="stage-stars">${bossStars}</div>
+    </div>`;
+
+  // 終極魔王關（需通關魔王關才解鎖）
+  const boss2Cleared = gs.stageClears['boss2'];
+  const boss2Section = document.getElementById('boss2-section');
+  boss2Section.style.display = allBase ? 'flex' : 'none';
+  document.getElementById('boss2-lock-msg').style.display = bossCleared ? 'none' : 'block';
+  const boss2Stars = boss2Cleared ? '⭐'.repeat(boss2Cleared.stars) + '☆'.repeat(3-boss2Cleared.stars) : '☆☆☆';
+  document.getElementById('boss2-btn-wrap').innerHTML = `
+    <div class="stage-btn boss2-btn ${bossCleared?'':'locked'} ${boss2Cleared?'completed':''}"
+      onclick="${bossCleared ? "enterStage('boss2')" : ''}">
+      <div style="font-size:36px">💀</div>
+      <div class="stage-name" style="color:#ce93d8">平假＋片假混合</div>
+      <div style="font-size:9px;color:#aaa">全50音不分字體</div>
+      <div class="stage-stars">${boss2Stars}</div>
+    </div>`;
+
+  // 綜合題（所含3個基礎段皆通關則解鎖）
+  const compSection = document.getElementById('comp-section');
+  compSection.style.display = 'flex';
+  const anyCompUnlocked = COMP_STAGES.some(s => s.requires.every(id => gs.stageClears[id]));
+  document.getElementById('comp-lock-msg').style.display = anyCompUnlocked ? 'none' : 'block';
+  document.getElementById('comp-grid').innerHTML = COMP_STAGES.map(s => {
+    const cleared = gs.stageClears[s.id];
+    const locked = !s.requires.every(id => gs.stageClears[id]);
+    const stars = cleared ? '⭐'.repeat(cleared.stars) + '☆'.repeat(3-cleared.stars) : '☆☆☆';
+    const lockTip = locked ? s.requires.filter(id => !gs.stageClears[id]).map(id => STAGES.find(st=>st.id===id)?.label||id).join('、') + ' 未通關' : '';
+    return `<div class="stage-btn comp-btn ${locked?'locked':''} ${cleared?'completed':''}"
+      onclick="${locked?'':` enterStage('${s.id}')`}" title="${lockTip}">
+      <div class="stage-hira" style="font-size:14px;line-height:1.4">${s.icon}</div>
+      <div class="stage-name">${s.name}</div>
+      <div style="font-size:9px;color:#aaa">${s.label}</div>
+      <div class="stage-stars">${stars}</div>
+    </div>`;
+  }).join('');
+
+  renderReviewSection();
+}
+
+// ══════════════════════════════════════════
+//  遊戲邏輯
+// ══════════════════════════════════════════
+function enterStage(stageId) {
+  const stage = STAGES.find(s => s.id === stageId) || COMP_STAGES.find(s => s.id === stageId) || (stageId === 'boss' ? BOSS_STAGE : null) || (stageId === 'boss2' ? BOSS2_STAGE : null);
+  const rounds = buildRounds(stage);
+  game = {
+    stageId, stage, rounds, roundIdx: 0,
+    hp: MAX_HP, combo: 0, matched: 0, expGained: 0, mistakes: 0,
+    selectedKana: null, selectedRoma: null, locked: false,
+    kanaSet: rounds[0].kanaSet,
+  };
+  renderGame();
+  showScreen('game');
+}
+
+function currentRound() { return game.rounds[game.roundIdx]; }
+
+function renderGame() {
+  const c = getChar(gs.activeCharId);
+  document.getElementById('game-char-bg').innerHTML =
+    heroVideoTag(gs.activeCharId, getCharState(gs.activeCharId).lv >= MAX_LEVEL, '', false);
+  document.getElementById('game-char-emoji').innerHTML = '';
+  document.getElementById('game-char-name').innerHTML =
+    `<span class="el-${c.el}">${c.name}</span>`;
+  const r = currentRound();
+  document.getElementById('game-row-title').textContent =
+    game.isReview ? '📝 複習關卡' : `${game.stage.name}　${r.label.split(' ')[1]}`;
+  updateGameUI();
+  buildCards();
+}
+
+function updateGameUI() {
+  document.getElementById('hp-bar').style.width = (game.hp / MAX_HP * 100) + '%';
+  document.getElementById('combo-display').textContent = `COMBO ×${game.combo}`;
+  document.getElementById('exp-gained-display').textContent = `+${game.expGained} EXP`;
+  document.getElementById('mistakes-display').textContent =
+    '❤️'.repeat(game.hp) + '🖤'.repeat(MAX_HP - game.hp);
+  document.getElementById('game-progress').textContent =
+    `回合 ${game.roundIdx+1}/${game.rounds.length}　配對 ${game.matched}/${game.kanaSet.length}`;
+}
+
+function buildCards() {
+  const r = currentRound();
+  const display = r.script === 'hira' ? game.kanaSet.map(k => k.h)
+    : r.script === 'kata' ? game.kanaSet.map(k => k.k)
+    : game.kanaSet.map(k => Math.random() < .5 ? k.h : k.k); // mixed
+  const label = r.script === 'hira' ? '平假名' : '片假名';
+  const n = game.kanaSet.length;
+  const cols = n <= 5 ? n : Math.ceil(n / 2);
+  const colStyle = `grid-template-columns: repeat(${cols}, 1fr)`;
+
+  const idxArr = game.kanaSet.map((_, i) => i);
+  const shuffledKana = shuffle([...idxArr]);
+  const shuffledRoma = shuffle([...idxArr]);
+
+  const gridHira = document.getElementById('cards-grid-hira');
+  const gridRoma = document.getElementById('cards-grid-roma');
+  gridHira.style.cssText = colStyle;
+  gridRoma.style.cssText = colStyle;
+  const faceUp = !!game.isReview;
+  gridHira.innerHTML = shuffledKana.map(i => cardHTML(display[i], i, 'kana', false, label, faceUp)).join('');
+  gridRoma.innerHTML = shuffledRoma.map(i => cardHTML(game.kanaSet[i].r, i, 'roma', true, 'romaji', faceUp)).join('');
+}
+
+function cardHTML(text, idx, type, isRoma, label, faceUp = false) {
+  return `<div class="card${faceUp ? ' flipped' : ''}" id="card-${type}-${idx}" onclick="selectCard(${idx},'${type}')">
+    <div class="card-inner">
+      <div class="card-front"><div class="card-front-icon">⛩️</div></div>
+      <div class="card-back ${isRoma ? 'romaji' : ''}">
+        <div class="kana-text">${text}</div>
+        <div class="card-label">${label}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function getCardEl(idx, type) { return document.getElementById(`card-${type}-${idx}`); }
+
+function selectCard(idx, type) {
+  if (game.locked) return;
+  const el = getCardEl(idx, type);
+  if (!el || el.classList.contains('matched')) return;
+
+  const isReview = !!game.isReview;
+  if (type === 'kana') {
+    if (game.selectedKana === idx) {
+      if (!isReview) el.classList.remove('flipped');
+      game.selectedKana = null;
+      el.classList.remove('selected');
+      return;
+    }
+    if (game.selectedKana !== null) {
+      if (!isReview) getCardEl(game.selectedKana, 'kana').classList.remove('flipped');
+      getCardEl(game.selectedKana, 'kana').classList.remove('selected');
+    }
+    game.selectedKana = idx;
+    el.classList.add('flipped');
+    el.classList.add('selected');
+  } else {
+    if (game.selectedRoma === idx) {
+      if (!isReview) el.classList.remove('flipped');
+      game.selectedRoma = null;
+      el.classList.remove('selected');
+      return;
+    }
+    if (game.selectedRoma !== null) {
+      if (!isReview) getCardEl(game.selectedRoma, 'roma').classList.remove('flipped');
+      getCardEl(game.selectedRoma, 'roma').classList.remove('selected');
+    }
+    game.selectedRoma = idx;
+    el.classList.add('flipped');
+    el.classList.add('selected');
+  }
+  if (game.selectedKana !== null && game.selectedRoma !== null) checkMatch();
+}
+
+function checkMatch() {
+  game.locked = true;
+  const ki = game.selectedKana, ri = game.selectedRoma;
+  const kEl = getCardEl(ki, 'kana'), rEl = getCardEl(ri, 'roma');
+
+  if (ki === ri) {
+    setTimeout(() => {
+      kEl.classList.add('matched'); kEl.classList.remove('selected');
+      rEl.classList.add('matched'); rEl.classList.remove('selected');
+      game.combo++;
+      game.matched++;
+      gs.totalMatches++;
+      if (game.combo > gs.maxComboEver) gs.maxComboEver = game.combo;
+      game.expGained += EXP_PER_CORRECT + Math.max(0, game.combo-1) * EXP_COMBO_BONUS;
+      game.selectedKana = null;
+      game.selectedRoma = null;
+      game.locked = false;
+      checkAchievements({});
+      updateGameUI();
+      if (game.matched === game.kanaSet.length) {
+        // perfect round = zero mistakes up to this point in the round
+        if (game.mistakes === 0) checkAchievements({ perfectRound: true });
+        setTimeout(roundComplete, 400);
+      }
+    }, 300);
+  } else {
+    setTimeout(() => {
+      kEl.classList.add('wrong'); rEl.classList.add('wrong');
+      setTimeout(() => {
+        kEl.classList.remove('wrong','selected'); rEl.classList.remove('wrong','selected');
+        if (!game.isReview) { kEl.classList.remove('flipped'); rEl.classList.remove('flipped'); }
+        game.combo = 0; game.hp--; game.mistakes++;
+        // 記錄錯誤字
+        const errKey = game.kanaSet[ki].r;
+        if (!gs.kanaMistakes) gs.kanaMistakes = {};
+        gs.kanaMistakes[errKey] = (gs.kanaMistakes[errKey] || 0) + 1;
+        game.selectedKana = null; game.selectedRoma = null;
+        game.locked = false;
+        updateGameUI();
+        if (game.hp <= 0) setTimeout(stageFailed, 300);
+      }, 500);
+    }, 300);
+  }
+}
+
+function roundComplete() {
+  game.roundIdx++;
+  if (game.roundIdx >= game.rounds.length) {
+    allRoundsComplete();
+  } else {
+    // 進入下一回合，顯示過場提示
+    game.matched = 0;
+    game.kanaSet = game.rounds[game.roundIdx].kanaSet;
+    showToast(`✅ 下一回合：${currentRound().label}`);
+    setTimeout(() => { renderGame(); }, 600);
+  }
+}
+
+function allRoundsComplete() {
+  stopReviewTimer();
+  if (game.isReview) { showToast('🎉 複習完成！'); saveGame(); showResult(true, 3, false, 0, []); return; }
+  const stars = game.mistakes === 0 ? 3 : game.mistakes <= 3 ? 2 : 1;
+  const prev = gs.stageClears[game.stageId];
+  gs.stageClears[game.stageId] = { stars: Math.max(stars, prev ? prev.stars : 0) };
+
+  const newlyUnlocked = [];
+  (STAGE_UNLOCKS[game.stageId] || []).forEach(id => {
+    if (!gs.chars[id]) gs.chars[id] = { lv:1, exp:0, unlocked:false };
+    if (!gs.chars[id].unlocked) { gs.chars[id].unlocked = true; newlyUnlocked.push(id); }
+  });
+
+  gs.totalClears = (gs.totalClears || 0) + 1;
+  if (game.mistakes === 0) gs.perfectClears = (gs.perfectClears || 0) + 1;
+  const { leveled, newLv } = addExp(gs.activeCharId, game.expGained);
+  checkAchievements({ perfectClear: game.mistakes === 0, stageId: game.stageId });
+  saveGame();
+  showResult(true, stars, leveled, newLv, newlyUnlocked);
+}
+
+function stageFailed() {
+  stopReviewTimer();
+  const { leveled, newLv } = addExp(gs.activeCharId, Math.floor(game.expGained / 2));
+  saveGame();
+  showResult(false, 0, leveled, newLv, []);
+}
+
+function addExp(charId, amount) {
+  if (!gs.chars[charId]) gs.chars[charId] = { lv:1, exp:0, unlocked:true };
+  const cs = gs.chars[charId];
+  if (cs.lv >= MAX_LEVEL) return { leveled: false, newLv: MAX_LEVEL };
+  gs.totalExpEarned = (gs.totalExpEarned || 0) + amount;
+  cs.exp += amount;
+  let leveled = false;
+  while (cs.exp >= expForLevel(cs.lv) && cs.lv < MAX_LEVEL) {
+    cs.exp -= expForLevel(cs.lv);
+    cs.lv++;
+    leveled = true;
+  }
+  if (cs.lv >= MAX_LEVEL) cs.exp = 0;
+  if (leveled) checkAchievements({});
+  return { leveled, newLv: cs.lv };
+}
+
+// ══════════════════════════════════════════
+//  結果畫面
+// ══════════════════════════════════════════
+function showResult(success, stars, leveled, newLv, newlyUnlocked) {
+  const c = getChar(gs.activeCharId);
+  const cs = getCharState(gs.activeCharId);
+
+  document.getElementById('result-char-emoji').innerHTML = heroVideoTag(gs.activeCharId, cs.lv >= MAX_LEVEL, 'char-img-xl', false);
+  document.getElementById('result-title').innerHTML = success
+    ? `<span style="color:#ffd700">關卡通關！</span>`
+    : `<span style="color:#ff7777">挑戰失敗</span>`;
+
+  const starsHTML = success ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '';
+  document.getElementById('result-stats').innerHTML = `
+    <div class="result-stat"><div class="result-stat-num">${game.matched}</div><div class="result-stat-label">配對成功</div></div>
+    <div class="result-stat"><div class="result-stat-num">${game.mistakes}</div><div class="result-stat-label">失誤次數</div></div>
+    <div class="result-stat"><div class="result-stat-num" style="color:#ce93d8">+${game.expGained}</div><div class="result-stat-label">EXP獲得</div></div>
+    ${success ? `<div class="result-stat"><div class="result-stat-num">${starsHTML}</div><div class="result-stat-label">評分</div></div>` : ''}
+  `;
+
+  const pct = expPercent(gs.activeCharId);
+  document.getElementById('result-lv-text').textContent =
+    `LV.${cs.lv}  ${cs.lv >= MAX_LEVEL ? 'MAX' : cs.exp + ' / ' + expForLevel(cs.lv) + ' EXP'}`;
+  setTimeout(() => {
+    document.getElementById('result-exp-fill').style.width = pct + '%';
+  }, 100);
+
+  let extra = '';
+  if (leveled) extra += `<div class="levelup-banner">✨ LEVEL UP! LV.${newLv}</div>`;
+  if (newlyUnlocked.length > 0) {
+    extra += newlyUnlocked.map(id => {
+      const nc = getChar(id);
+      return `<div class="unlock-banner" style="display:flex;align-items:center;gap:8px;justify-content:center">🔓 新角色解鎖：${heroImgTag(id, false, 'char-img-sm', false)} <span class="el-${nc.el}">${nc.name}</span> <span class="rarity-${nc.rarity.toLowerCase()}">[${nc.rarity}]</span></div>`;
+    }).join('');
+  }
+  document.getElementById('result-extra').innerHTML = extra;
+  document.getElementById('btn-retry').style.display = 'inline-block';
+
+  showScreen('result');
+}
+
+function retryStage() {
+  if (game.stageId === 'review') { enterReviewStage(); return; }
+  if (game.stageId) enterStage(game.stageId);
+}
+
+function quitGame() {
+  stopReviewTimer();
+  if (confirm('確定放棄這次挑戰？本次 EXP 將不計算。')) {
+    showScreen('stages');
+  }
+}
+
+// ══════════════════════════════════════════
+//  挑戰關卡
+// ══════════════════════════════════════════
+const HIRA_TO_ROMA = {
+  'あ':'a','い':'i','う':'u','え':'e','お':'o',
+  'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
+  'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so',
+  'た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
+  'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
+  'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
+  'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
+  'や':'ya','ゆ':'yu','よ':'yo',
+  'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
+  'わ':'wa','を':'wo','ん':'n',
+  'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
+  'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
+  'だ':'da','ぢ':'di','づ':'du','で':'de','ど':'do',
+  'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
+  'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po',
+};
+
+const CHALLENGE_WORDS = [
+  // 2文字
+  {w:'あさ',m:'早晨'},{w:'いぬ',m:'狗'},{w:'うみ',m:'海'},{w:'えき',m:'車站'},
+  {w:'おか',m:'山丘'},{w:'かさ',m:'雨傘'},{w:'くさ',m:'草'},{w:'こえ',m:'聲音'},
+  {w:'しお',m:'鹽'},{w:'そら',m:'天空'},{w:'つき',m:'月亮'},{w:'とり',m:'鳥'},
+  {w:'にく',m:'肉'},{w:'ねこ',m:'貓'},{w:'はな',m:'花'},{w:'ひる',m:'白天'},
+  {w:'ふね',m:'船'},{w:'へや',m:'房間'},{w:'まち',m:'城鎮'},{w:'みず',m:'水'},
+  {w:'もり',m:'森林'},{w:'やま',m:'山'},{w:'ゆき',m:'雪'},{w:'よる',m:'夜晚'},
+  {w:'かに',m:'螃蟹'},{w:'さる',m:'猴子'},{w:'たこ',m:'章魚'},{w:'なし',m:'梨子'},
+  {w:'ほし',m:'星星'},{w:'みち',m:'道路'},{w:'かぜ',m:'風'},{w:'うた',m:'歌'},
+  {w:'かお',m:'臉'},{w:'まめ',m:'豆子'},{w:'いか',m:'烏賊'},{w:'うし',m:'牛'},
+  {w:'なべ',m:'鍋'},{w:'はし',m:'筷子'},{w:'むし',m:'蟲'},{w:'くも',m:'雲'},
+  {w:'かわ',m:'河川'},{w:'いし',m:'石頭'},{w:'かぎ',m:'鑰匙'},{w:'ひも',m:'繩子'},
+  {w:'まど',m:'窗戶'},{w:'ふた',m:'蓋子'},{w:'たか',m:'老鷹'},{w:'しか',m:'鹿'},
+  {w:'きり',m:'霧'},{w:'むぎ',m:'麥子'},{w:'のり',m:'海苔'},{w:'すな',m:'沙子'},
+  {w:'てら',m:'寺廟'},{w:'ちず',m:'地圖'},{w:'けが',m:'受傷'},{w:'きし',m:'岸邊'},
+  {w:'なわ',m:'繩子'},{w:'ぬの',m:'布料'},{w:'めし',m:'飯'},{w:'わに',m:'鱷魚'},
+  // 3文字
+  {w:'あたま',m:'頭'},{w:'うさぎ',m:'兔子'},{w:'おとこ',m:'男性'},{w:'おんな',m:'女性'},
+  {w:'かがみ',m:'鏡子'},{w:'かばん',m:'包包'},{w:'からす',m:'烏鴉'},{w:'きつね',m:'狐狸'},
+  {w:'くるま',m:'車'},{w:'こども',m:'小孩'},{w:'さかな',m:'魚'},{w:'さくら',m:'櫻花'},
+  {w:'さとう',m:'砂糖'},{w:'すいか',m:'西瓜'},{w:'たぬき',m:'狸貓'},{w:'たまご',m:'雞蛋'},
+  {w:'てがみ',m:'信件'},{w:'なまえ',m:'名字'},{w:'はなび',m:'煙火'},{w:'みかん',m:'橘子'},
+  {w:'もみじ',m:'楓葉'},{w:'りんご',m:'蘋果'},{w:'ゆびわ',m:'戒指'},{w:'おなか',m:'肚子'},
+  {w:'きもの',m:'和服'},{w:'おかし',m:'點心'},{w:'いのち',m:'生命'},{w:'あかり',m:'燈光'},
+  {w:'くすり',m:'藥'},{w:'なみだ',m:'眼淚'},{w:'ひかり',m:'光'},{w:'ほたる',m:'螢火蟲'},
+  {w:'まくら',m:'枕頭'},{w:'みどり',m:'綠色'},{w:'むすめ',m:'女兒'},{w:'やかん',m:'水壺'},
+  {w:'ゆかた',m:'浴衣'},{w:'わかめ',m:'裙帶菜'},{w:'いちご',m:'草莓'},{w:'のはら',m:'原野'},
+  {w:'けしき',m:'景色'},{w:'こおり',m:'冰'},{w:'ふくろ',m:'袋子'},{w:'くだり',m:'下坡'},
+  {w:'むすび',m:'飯糰'},{w:'いとこ',m:'堂表兄弟'},{w:'みそら',m:'蒼穹'},{w:'ねむり',m:'睡眠'},
+  // 4文字
+  {w:'あおぞら',m:'藍天'},{w:'あじさい',m:'繡球花'},{w:'おにぎり',m:'飯糰'},
+  {w:'かみなり',m:'雷'},{w:'たんぽぽ',m:'蒲公英'},{w:'てんぷら',m:'天婦羅'},
+  {w:'とんかつ',m:'豬排'},{w:'にわとり',m:'雞'},{w:'ひまわり',m:'向日葵'},
+  {w:'はなびら',m:'花瓣'},{w:'こいびと',m:'戀人'},{w:'はなたば',m:'花束'},
+  {w:'さくらんぼ',m:'櫻桃'},
+];
+
+let cg = { hp:0, score:0, streak:0, bestStreak:0, word:null, wordChars:[], cards:[], answerCount:0, locked:false };
+
+function enterChallenge() {
+  const c = getChar(gs.activeCharId);
+  const cs = getCharState(gs.activeCharId);
+  cg = { hp: MAX_HP, score:0, streak:0, bestStreak:0, word:null, wordChars:[], cards:[], answerCount:0, locked:false };
+  document.getElementById('ch-char-bg').innerHTML = heroVideoTag(gs.activeCharId, cs.lv >= MAX_LEVEL, '', false);
+  document.getElementById('ch-char-name').innerHTML = `<span class="el-${c.el}">${c.name}</span>`;
+  document.getElementById('ch-gameover').classList.remove('show');
+  nextChallengeWord();
+  showScreen('challenge');
+}
+
+function nextChallengeWord() {
+  cg.word = CHALLENGE_WORDS[Math.floor(Math.random() * CHALLENGE_WORDS.length)];
+  cg.wordChars = [...cg.word.w];
+  // 每個字拆成 {char, id, used}，display 順序打亂
+  cg.cards = shuffle(cg.wordChars.map((char, i) => ({ char, roma: HIRA_TO_ROMA[char] || char, id: i, used: false })));
+  cg.answerCount = 0;
+  cg.locked = false;
+  renderChallengeWord();
+  updateChallengeHUD();
+}
+
+function renderChallengeWord() {
+  document.getElementById('ch-meaning').textContent = '';
+  document.getElementById('ch-hint').textContent = cg.word.w;
+
+  // 答案格
+  document.getElementById('ch-answer-row').innerHTML =
+    cg.wordChars.map((_, i) => `<div class="ch-box${i < cg.answerCount ? ' filled' : ''}" id="ch-box-${i}">${i < cg.answerCount ? cg.wordChars[i] : ''}</div>`).join('');
+
+  // 字牌
+  document.getElementById('ch-cards-grid').innerHTML =
+    cg.cards.map((c, i) => `<div class="ch-card${c.used ? ' used' : ''}" id="ch-c-${i}" onclick="selectChallengeCard(${i})" style="font-size:${c.roma.length>=3?'14px':'18px'};letter-spacing:-0.5px">${c.roma}</div>`).join('');
+}
+
+function selectChallengeCard(i) {
+  if (cg.locked) return;
+  const card = cg.cards[i];
+  if (!card || card.used) return;
+
+  const expected = cg.wordChars[cg.answerCount];
+  if (card.char === expected) {
+    card.used = true;
+    document.getElementById(`ch-c-${i}`).classList.add('used');
+    cg.answerCount++;
+    const box = document.getElementById(`ch-box-${cg.answerCount - 1}`);
+    if (box) { box.textContent = card.char; box.classList.add('filled'); }
+    if (cg.answerCount === cg.wordChars.length) {
+      // 全對！
+      cg.score++; cg.streak++;
+      if (cg.streak > cg.bestStreak) cg.bestStreak = cg.streak;
+      document.querySelectorAll('.ch-box').forEach(b => b.classList.replace('filled','correct'));
+      document.getElementById('ch-meaning').textContent = cg.word.m;
+      updateChallengeHUD();
+      setTimeout(nextChallengeWord, 900);
+    }
+  } else {
+    // 答錯
+    cg.locked = true;
+    cg.streak = 0;
+    cg.hp--;
+    const cardEl = document.getElementById(`ch-c-${i}`);
+    cardEl.classList.add('flash-wrong');
+    // 已填的格子標紅
+    for (let j = 0; j < cg.answerCount; j++) {
+      const b = document.getElementById(`ch-box-${j}`);
+      if (b) b.classList.replace('filled','wrong');
+    }
+    updateChallengeHUD();
+    setTimeout(() => {
+      cardEl.classList.remove('flash-wrong');
+      if (cg.hp <= 0) {
+        endChallenge();
+        return;
+      }
+      // 揭示正確答案0.8秒
+      cg.wordChars.forEach((ch, j) => {
+        const b = document.getElementById(`ch-box-${j}`);
+        if (b) { b.textContent = ch; b.className = 'ch-box reveal'; }
+      });
+      setTimeout(() => { cg.locked = false; resetChallengeWord(); }, 900);
+    }, 400);
+  }
+}
+
+function resetChallengeWord() {
+  cg.cards.forEach(c => { c.used = false; });
+  cg.answerCount = 0;
+  renderChallengeWord();
+}
+
+function updateChallengeHUD() {
+  document.getElementById('ch-hp-bar').style.width = (cg.hp / MAX_HP * 100) + '%';
+  document.getElementById('ch-hp-text').textContent = '❤️'.repeat(cg.hp) + '🖤'.repeat(MAX_HP - cg.hp);
+  document.getElementById('ch-score-disp').textContent = `得分 ${cg.score}`;
+  document.getElementById('ch-streak-disp').textContent = `連對 ×${cg.streak}`;
+}
+
+function endChallenge() {
+  document.getElementById('ch-final-score').textContent = `得分：${cg.score} 題`;
+  document.getElementById('ch-final-streak').textContent = `最高連對：${cg.bestStreak}`;
+  document.getElementById('ch-gameover').classList.add('show');
+}
+
+function quitChallenge() {
+  if (confirm('確定放棄挑戰？')) showScreen('stages');
+}
+
+// ══════════════════════════════════════════
+//  複習關卡
+// ══════════════════════════════════════════
+const REVIEW_TIME = 60; // 秒
+let reviewTimerInterval = null;
+
+function buildReviewKana() {
+  if (!gs.kanaMistakes) return [];
+  const ALL_KANA = [];
+  STAGES.forEach(s => s.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); }));
+  COMP_STAGES.forEach(s => s.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); }));
+  BOSS_STAGE.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); });
+
+  return Object.entries(gs.kanaMistakes)
+    .filter(([r]) => r && ALL_KANA.find(k => k.r === r))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 100)
+    .map(([r, cnt]) => ({ ...ALL_KANA.find(k => k.r === r), cnt }));
+}
+
+// 按權重（錯誤次數）不重複抽樣
+function weightedSample(pool, n) {
+  const avail = pool.map((x, i) => ({ ...x, _i: i }));
+  const result = [];
+  while (result.length < n && avail.length > 0) {
+    const total = avail.reduce((s, x) => s + x.cnt, 0);
+    let rand = Math.random() * total;
+    for (let i = 0; i < avail.length; i++) {
+      rand -= avail[i].cnt;
+      if (rand <= 0) { result.push(avail.splice(i, 1)[0]); break; }
+    }
+  }
+  return result;
+}
+
+const REVIEW_BATCH = 8; // 每回合卡片數
+
+function enterReviewStage() {
+  const pool = buildReviewKana();
+  if (pool.length < 2) { showToast('還沒有足夠的錯誤記錄，多玩幾關再來複習吧！'); return; }
+
+  // 建立回合：按錯誤率加權抽樣，每批 REVIEW_BATCH 張，最多 5 回合
+  const maxRounds = Math.min(5, Math.ceil(pool.length / REVIEW_BATCH));
+  let remaining = [...pool];
+  const rounds = [];
+  for (let i = 0; i < maxRounds && remaining.length >= 2; i++) {
+    const batchSize = Math.min(REVIEW_BATCH, remaining.length);
+    const picked = weightedSample(remaining, batchSize);
+    const pickedKeys = new Set(picked.map(x => x.r));
+    remaining = remaining.filter(x => !pickedKeys.has(x.r));
+    const kanaSet = picked.map(({ h, k, r }) => ({ h, k, r }));
+    rounds.push({ label: `複習 Round ${i + 1}`, script: 'hira', kanaSet });
+  }
+
+  const totalCards = rounds.reduce((s, r) => s + r.kanaSet.length, 0);
+  const timeLimit = Math.max(60, totalCards * 8); // 每張 8 秒
+
+  game = {
+    stageId: 'review', stage: { name: '複習關卡', kana: [] },
+    rounds, roundIdx: 0,
+    hp: MAX_HP, combo: 0, matched: 0, expGained: 0, mistakes: 0,
+    selectedKana: null, selectedRoma: null, locked: false,
+    kanaSet: rounds[0].kanaSet,
+    isReview: true,
+    timeLimit,
+    timeRemaining: timeLimit,
+  };
+  renderGame();
+  showScreen('game');
+  startReviewTimer();
+}
+
+function startReviewTimer() {
+  stopReviewTimer();
+  updateTimerUI();
+  document.getElementById('hud-timer-row').classList.add('active');
+  reviewTimerInterval = setInterval(() => {
+    game.timeRemaining--;
+    updateTimerUI();
+    if (game.timeRemaining <= 0) {
+      stopReviewTimer();
+      showToast('⏰ 時間到！');
+      setTimeout(stageFailed, 400);
+    }
+  }, 1000);
+}
+
+function stopReviewTimer() {
+  if (reviewTimerInterval) { clearInterval(reviewTimerInterval); reviewTimerInterval = null; }
+  document.getElementById('hud-timer-row').classList.remove('active');
+}
+
+function updateTimerUI() {
+  const t = game.timeRemaining || 0;
+  const pct = Math.max(0, t / (game.timeLimit || REVIEW_TIME) * 100);
+  const bar = document.getElementById('timer-bar');
+  const txt = document.getElementById('timer-text');
+  if (!bar || !txt) return;
+  bar.style.width = pct + '%';
+  bar.style.background = t > 20 ? '#4facfe' : t > 10 ? '#fda085' : '#ff4444';
+  txt.textContent = t + 's';
+}
+
+function renderReviewSection() {
+  const kanaList = buildReviewKana();
+  const sec = document.getElementById('review-section');
+  if (kanaList.length < 2) { sec.style.display = 'none'; return; }
+  sec.style.display = 'flex';
+  document.getElementById('review-missed-row').innerHTML = kanaList.map(k =>
+    `<div class="review-missed-badge">${k.h}<span style="color:#aaa;font-size:10px">${k.r}</span><span class="err-cnt">×${k.cnt}</span></div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════
+//  初始化
+// ══════════════════════════════════════════
+loadGame();
+renderTitle();
+
+// 確保所有角色都有狀態
+CHARACTERS.forEach(c => {
+  if (!gs.chars[c.id]) {
+    const startUnlocked = c.id === 1 || c.rarity === 'SR';
+    gs.chars[c.id] = { lv:1, exp:0, unlocked: startUnlocked };
+  }
+});
+saveGame();
+</script>
+</body>
+</html>
