@@ -364,6 +364,26 @@
   .char-img-title:nth-child(4){animation-delay:1.5s} .char-img-title:nth-child(5){animation-delay:2s}
 
   /* ── Toast ── */
+  /* ── 登入獎勵 ── */
+  .lr-day { width:36px;height:36px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:#aaa;border:2px solid #555; }
+  .lr-day.active { background:#ffd70033;border-color:#ffd700;color:#ffd700; }
+  .lr-day.today { background:#ffd700;border-color:#ffd700;color:#333;transform:scale(1.15); }
+
+  /* ── 稱號 ── */
+  .title-card { display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid #ffffff18;border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color .2s; }
+  .title-card.owned:hover { border-color:#ffd70066; }
+  .title-card.title-active { border-color:#ffd700;background:#ffd70018; }
+  .title-icon { font-size:24px;flex-shrink:0; }
+  .title-body { flex:1;min-width:0; }
+  .title-name { font-size:14px;font-weight:bold; }
+  .title-cond { font-size:11px;color:#aaa; }
+
+  /* ── 時間挑戰按鈕 ── */
+  .ta-btn { position:absolute;top:4px;right:4px;background:#ffd70033;border:1px solid #ffd700;color:#ffd700;border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer;z-index:2; }
+
+  /* ── 抽卡 ── */
+  .gacha-card { background:#1a1a2e;border:2px solid #ce93d8;border-radius:10px;overflow:hidden;padding:6px;text-align:center;display:flex;flex-direction:column;gap:4px; }
+
   .toast { position: fixed; top: env(safe-area-inset-top, 16px); left: 50%;
     transform: translateX(-50%); background: #ffd700; color: #333; padding: 10px 22px;
     border-radius: 30px; font-weight: bold; z-index: 200; opacity: 0; transition: opacity .3s;
@@ -393,6 +413,13 @@
         <div class="active-char-lv" id="home-char-lv"></div>
         <div class="exp-bar-wrap"><div class="exp-bar" id="home-exp-bar"></div></div>
         <div class="exp-text" id="home-exp-text"></div>
+        <div id="home-title-display" style="font-size:11px;color:#ffd700;margin-top:2px"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <div style="flex:1;background:#333;border-radius:10px;height:5px;overflow:hidden">
+            <div id="home-aff-bar" style="height:100%;background:linear-gradient(90deg,#f093fb,#f5576c);border-radius:10px;transition:width .5s;width:0%"></div>
+          </div>
+          <div id="home-aff-text" style="font-size:10px;color:#f093fb;white-space:nowrap">🤍 初識</div>
+        </div>
       </div>
     </div>
     <div class="stat-row">
@@ -406,6 +433,8 @@
       <button class="btn btn-purple" onclick="showScreen('collection')">📖 角色圖鑑</button>
       <button class="btn btn-blue" onclick="showScreen('achievements')">🏆 成就</button>
       <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('quests')">📅 每日任務 <span id="home-quest-badge" style="display:none;background:#e74c3c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">!</span></button>
+      <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('titles')">🏅 稱號</button>
+      <button class="btn" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#333" onclick="showScreen('gacha')">🎰 時裝抽卡</button>
       <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
     </div>
   </div>
@@ -652,6 +681,58 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 稱號 ═══════════════ -->
+<div id="screen-titles" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">🏅 稱號</h2>
+    <div style="font-size:16px;font-weight:bold;color:#64dfff;flex-shrink:0">💎 <span id="title-diamonds">0</span></div>
+  </div>
+  <div id="title-list" style="display:flex;flex-direction:column;gap:10px;padding:12px 16px 24px;width:100%;overflow-y:auto;flex:1"></div>
+</div>
+
+<!-- ═══════════════ 抽卡 ═══════════════ -->
+<div id="screen-gacha" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">🎰 時裝抽卡</h2>
+    <div style="font-size:16px;font-weight:bold;color:#64dfff;flex-shrink:0">💎 <span id="gacha-diamonds">0</span></div>
+  </div>
+  <div style="padding:12px 16px;display:flex;flex-direction:column;gap:12px;align-items:center;overflow-y:auto;flex:1;width:100%">
+    <div style="font-size:12px;color:#aaa" id="gacha-remaining"></div>
+    <div style="font-size:12px;color:#ce93d8" id="gacha-pity"></div>
+    <div style="display:flex;gap:10px;width:100%;max-width:400px">
+      <button class="btn" style="flex:1;background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#333;min-height:52px" onclick="doPull(1)">
+        單抽<br><span style="font-size:12px">80 💎</span>
+      </button>
+      <button class="btn" style="flex:1;background:linear-gradient(135deg,#f6d365,#fda085);color:#333;min-height:52px" onclick="doPull(10)">
+        十連抽<br><span style="font-size:12px">720 💎（九折）</span>
+      </button>
+    </div>
+    <div style="font-size:12px;color:#aaa;text-align:center">每10抽保底獲得時裝 · 15%機率觸發</div>
+    <div id="gacha-result" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;width:100%;max-width:400px"></div>
+  </div>
+</div>
+
+<!-- 登入獎勵浮層 -->
+<div id="login-reward-overlay" style="display:none;position:fixed;inset:0;z-index:9500;background:#0009;align-items:center;justify-content:center;flex-direction:column;gap:0">
+  <div style="background:linear-gradient(135deg,#1a1035,#2a1a4a);border:2px solid #ffd700;border-radius:20px;padding:28px 24px;max-width:320px;width:90%;text-align:center;display:flex;flex-direction:column;gap:14px">
+    <div style="font-size:32px">🗓️</div>
+    <div style="font-size:20px;font-weight:bold;color:#ffd700">連續登入第 <span id="lr-streak">1</span> 天！</div>
+    <div style="display:flex;justify-content:center;gap:6px">
+      <div class="lr-day" data-day="1">1</div>
+      <div class="lr-day" data-day="2">2</div>
+      <div class="lr-day" data-day="3">3</div>
+      <div class="lr-day" data-day="4">4</div>
+      <div class="lr-day" data-day="5">5</div>
+      <div class="lr-day" data-day="6">6</div>
+      <div class="lr-day" data-day="7">7+</div>
+    </div>
+    <div style="font-size:24px;font-weight:bold;color:#64dfff">+<span id="lr-reward">10</span> 💎</div>
+    <button class="btn btn-gold" onclick="closeLoginReward()" style="min-height:44px">領取獎勵！</button>
   </div>
 </div>
 
@@ -922,6 +1003,11 @@ let gs = {
   diamonds: 0,
   unlockedVideos: {},
   dailyQuests: null,   // { date, quests:[{id,progress,done}] }
+  loginStreak: { lastDate: null, streak: 0 },
+  titles: { unlocked: [], active: null },
+  affection: {},
+  bestTimes: {},
+  gacha: { pity: 0, history: [] },
 };
 
 let game = {
@@ -1496,6 +1582,11 @@ function loadGame() {
     if (!gs.diamonds)        gs.diamonds        = 0;
     if (!gs.unlockedVideos)  gs.unlockedVideos  = {};
     if (!gs.dailyQuests)     gs.dailyQuests     = null;
+    if (!gs.loginStreak) gs.loginStreak = { lastDate: null, streak: 0 };
+    if (!gs.titles) gs.titles = { unlocked: [], active: null };
+    if (!gs.affection) gs.affection = {};
+    if (!gs.bestTimes) gs.bestTimes = {};
+    if (!gs.gacha) gs.gacha = { pity: 0, history: [] };
   } else {
     // 初始化
     CHARACTERS.forEach(c => {
@@ -1525,6 +1616,8 @@ function showScreen(name) {
   if (name === 'achievements') renderAchievements();
   if (name === 'shop') renderShop();
   if (name === 'quests') renderQuests();
+  if (name === 'titles') renderTitles();
+  if (name === 'gacha') renderGachaMain();
 }
 
 function showToast(msg, duration = 2000) {
@@ -1571,6 +1664,7 @@ function renderTitle() {
 
 function startGame() {
   loadGame();
+  checkLoginStreak();
   showScreen('home');
 }
 
@@ -1593,6 +1687,18 @@ function renderHome() {
   document.getElementById('stat-matches').textContent = gs.totalMatches;
   const dEl = document.getElementById('stat-diamonds');
   if (dEl) dEl.textContent = gs.diamonds || 0;
+  // 稱號顯示
+  const titleEl = document.getElementById('home-title-display');
+  if (titleEl) {
+    const t = gs.titles?.active ? TITLE_LIST.find(x=>x.id===gs.titles.active) : null;
+    titleEl.textContent = t ? `${t.icon} ${t.name}` : '';
+  }
+  // 好感度
+  const aff = getAffection(gs.activeCharId);
+  const affBar = document.getElementById('home-aff-bar');
+  const affText = document.getElementById('home-aff-text');
+  if (affBar) affBar.style.width = aff + '%';
+  if (affText) affText.textContent = getAffectionLabel(aff);
   // 每日任務角標：有未完成任務就顯示紅點
   ensureDailyQuests();
   const badge = document.getElementById('home-quest-badge');
@@ -1695,11 +1801,13 @@ function renderStages() {
     const locked = idx > 0 && !gs.stageClears[STAGES[idx-1].id];
     const stars = cleared ? '⭐'.repeat(cleared.stars) + '☆'.repeat(3-cleared.stars) : '☆☆☆';
     return `<div class="stage-btn ${locked?'locked':''} ${cleared?'completed':''}"
-      onclick="${locked?'':` enterStage('${s.id}')`}">
+      onclick="${locked?'':` enterStage('${s.id}')`}" style="position:relative">
+      ${cleared ? `<button class="ta-btn" onclick="event.stopPropagation();enterTimeAttack('${s.id}')">⚡</button>` : ''}
       <div class="stage-hira">${s.icon}</div>
       <div class="stage-name">${s.name}</div>
       <div style="font-size:10px;color:#aaa">${s.label}</div>
       <div class="stage-stars">${stars}</div>
+      ${gs.bestTimes[s.id] ? `<div style="font-size:10px;color:#ffd700">⏱ ${gs.bestTimes[s.id]}s</div>` : ''}
     </div>`;
   }).join('');
 
@@ -1780,7 +1888,10 @@ function enterStage(stageId) {
     hp: MAX_HP, combo: 0, matched: 0, expGained: 0, mistakes: 0,
     selectedKana: null, selectedRoma: null, locked: false,
     kanaSet: rounds[0].kanaSet,
+    timeAttack: _pendingTimeAttack,
+    taStartTime: null,
   };
+  _pendingTimeAttack = false;
   renderGame();
   showScreen('game');
 }
@@ -1788,6 +1899,7 @@ function enterStage(stageId) {
 function currentRound() { return game.rounds[game.roundIdx]; }
 
 function renderGame() {
+  if (game.timeAttack && !game.taStartTime) game.taStartTime = Date.now();
   const c = getChar(gs.activeCharId);
   document.getElementById('game-char-bg').innerHTML =
     heroVideoTag(gs.activeCharId, getCharState(gs.activeCharId).lv >= MAX_LEVEL, '', false);
@@ -1983,10 +2095,30 @@ function allRoundsComplete() {
   if (!prev) diamondEarned *= 2;
   gs.diamonds = (gs.diamonds || 0) + diamondEarned;
 
+  // 好感度
+  const affAmt = game.mistakes === 0 ? 5 : 3;
+  addAffection(gs.activeCharId, affAmt);
+
+  // 時間挑戰
+  let taResult = null;
+  if (game.timeAttack && game.taStartTime) {
+    const secs = Math.round((Date.now() - game.taStartTime) / 1000);
+    const kanaCount = game.stage ? game.stage.kana.length : 10;
+    const rating = getTimeRating(secs, kanaCount);
+    const prevBest = gs.bestTimes[game.stageId];
+    const isNew = !prevBest || secs < prevBest;
+    if (isNew) gs.bestTimes[game.stageId] = secs;
+    const bonusDiam = Math.round(diamondEarned * rating.bonus);
+    gs.diamonds = (gs.diamonds || 0) + bonusDiam;
+    taResult = { secs, grade: rating.grade, color: rating.color, bonusDiam, isNew };
+    game.timeAttack = false;
+  }
+
   const { leveled, newLv } = addExp(gs.activeCharId, game.expGained);
   checkAchievements({ perfectClear: game.mistakes === 0, stageId: game.stageId });
+  checkTitles();
   saveGame();
-  showResult(true, stars, leveled, newLv, newlyUnlocked, diamondEarned);
+  showResult(true, stars, leveled, newLv, newlyUnlocked, diamondEarned, taResult);
 }
 
 function stageFailed() {
@@ -2016,7 +2148,7 @@ function addExp(charId, amount) {
 // ══════════════════════════════════════════
 //  結果畫面
 // ══════════════════════════════════════════
-function showResult(success, stars, leveled, newLv, newlyUnlocked, diamondEarned = 0) {
+function showResult(success, stars, leveled, newLv, newlyUnlocked, diamondEarned = 0, taResult = null) {
   const c = getChar(gs.activeCharId);
   const cs = getCharState(gs.activeCharId);
 
@@ -2042,6 +2174,14 @@ function showResult(success, stars, leveled, newLv, newlyUnlocked, diamondEarned
   }, 100);
 
   let extra = '';
+  if (taResult) {
+    extra += `<div style="text-align:center;background:#ffffff0d;border-radius:12px;padding:10px;margin-top:8px">
+      ⚡ <b>時間挑戰</b> ${taResult.secs}秒
+      <span style="font-size:22px;font-weight:900;color:${taResult.color}"> ${taResult.grade}</span>
+      ${taResult.isNew ? ' <span style="color:#ffd700;font-size:12px">🏆 最佳紀錄！</span>' : ''}
+      ${taResult.bonusDiam > 0 ? `<br><span style="color:#64dfff">+${taResult.bonusDiam} 💎 評級獎勵</span>` : ''}
+    </div>`;
+  }
   if (leveled) extra += `<div class="levelup-banner">✨ LEVEL UP! LV.${newLv}</div>`;
   if (newlyUnlocked.length > 0) {
     extra += newlyUnlocked.map(id => {
@@ -2349,6 +2489,222 @@ function renderReviewSection() {
   document.getElementById('review-missed-row').innerHTML = kanaList.map(k =>
     `<div class="review-missed-badge">${k.h}<span style="color:#aaa;font-size:10px">${k.r}</span><span class="err-cnt">×${k.cnt}</span></div>`
   ).join('');
+}
+
+// ══════════════════════════════════════════
+//  連續登入獎勵
+// ══════════════════════════════════════════
+function checkLoginStreak() {
+  const today = todayStr();
+  const ls = gs.loginStreak;
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = yesterday.toISOString().slice(0,10);
+  if (ls.lastDate === today) return;
+  if (ls.lastDate === yStr) { ls.streak++; }
+  else { ls.streak = 1; }
+  ls.lastDate = today;
+  const rewards = [10,15,20,30,50,60,100];
+  const reward = rewards[Math.min(ls.streak-1, rewards.length-1)];
+  gs.diamonds = (gs.diamonds||0) + reward;
+  saveGame();
+  showLoginReward(ls.streak, reward);
+  checkTitles();
+}
+
+function showLoginReward(streak, reward) {
+  const el = document.getElementById('login-reward-overlay');
+  document.getElementById('lr-streak').textContent = streak;
+  document.getElementById('lr-reward').textContent = reward;
+  const days = document.querySelectorAll('.lr-day');
+  days.forEach((d,i) => {
+    d.classList.toggle('active', i < streak);
+    d.classList.toggle('today', i === streak-1);
+  });
+  el.style.display = 'flex';
+}
+
+function closeLoginReward() {
+  document.getElementById('login-reward-overlay').style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+//  稱號系統
+// ══════════════════════════════════════════
+const TITLE_LIST = [
+  { id:'t_beginner',  name:'初學者',    icon:'📖', cond:'通關第1段',       check:()=>!!gs.stageClears['dan1'] },
+  { id:'t_master50',  name:'五十音王者', icon:'👑', cond:'通關全5段基礎關', check:()=>STAGES.every(s=>gs.stageClears[s.id]) },
+  { id:'t_allcomp',   name:'綜合高手',  icon:'🌟', cond:'通關全綜合關',    check:()=>COMP_STAGES.every(s=>gs.stageClears[s.id]) },
+  { id:'t_perfect10', name:'完美主義者', icon:'⭐', cond:'零失誤通關10次',  check:()=>(gs.perfectClears||0)>=10 },
+  { id:'t_combo20',   name:'連擊達人',  icon:'⚡', cond:'連擊達20',        check:()=>(gs.maxComboEver||0)>=20 },
+  { id:'t_diamond',   name:'鑽石貴族',  icon:'💎', cond:'持有500💎',       check:()=>(gs.diamonds||0)>=500 },
+  { id:'t_boss',      name:'魔王終結者', icon:'💀', cond:'通關終極魔王',    check:()=>!!gs.stageClears['boss2'] },
+  { id:'t_login7',    name:'每日勤練者', icon:'🗓️', cond:'連續登入7天',    check:()=>(gs.loginStreak?.streak||0)>=7 },
+  { id:'t_login30',   name:'常駐修行者', icon:'🔥', cond:'連續登入30天',   check:()=>(gs.loginStreak?.streak||0)>=30 },
+  { id:'t_daku',      name:'濁音征服者', icon:'が', cond:'通關濁音關',      check:()=>!!gs.stageClears['daku'] },
+  { id:'t_match500',  name:'配對狂人',  icon:'✨', cond:'累計配對500次',   check:()=>(gs.totalMatches||0)>=500 },
+];
+
+function checkTitles() {
+  if (!gs.titles) gs.titles = { unlocked: [], active: null };
+  TITLE_LIST.forEach(t => {
+    if (!gs.titles.unlocked.includes(t.id) && t.check()) {
+      gs.titles.unlocked.push(t.id);
+      showToast(`🏅 稱號解鎖：${t.icon}${t.name}`);
+    }
+  });
+}
+
+function setActiveTitle(id) {
+  gs.titles.active = id;
+  saveGame();
+  renderTitles();
+  renderHome();
+}
+
+function renderTitles() {
+  const list = document.getElementById('title-list');
+  if (!list) return;
+  if (!gs.titles) gs.titles = { unlocked: [], active: null };
+  const dEl = document.getElementById('title-diamonds');
+  if (dEl) dEl.textContent = gs.diamonds || 0;
+  list.innerHTML = TITLE_LIST.map(t => {
+    const owned = gs.titles.unlocked.includes(t.id);
+    const active = gs.titles.active === t.id;
+    return `<div class="title-card ${owned?'owned':''} ${active?'title-active':''}" onclick="${owned?`setActiveTitle('${t.id}')`:''}" style="${owned?'':'opacity:.4;cursor:default'}">
+      <div class="title-icon">${t.icon}</div>
+      <div class="title-body">
+        <div class="title-name">${t.name}</div>
+        <div class="title-cond">${owned?'已解鎖':'🔒 '+t.cond}</div>
+      </div>
+      ${active?'<div style="color:#ffd700;font-size:18px">✓</div>':''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  好感度系統
+// ══════════════════════════════════════════
+const MAX_AFFECTION = 100;
+const AFFECTION_MILESTONES = [20, 40, 60, 80, 100];
+const AFFECTION_REWARDS    = [15, 25, 40, 60, 100];
+
+function getAffection(charId) { return gs.affection[charId] || 0; }
+
+function addAffection(charId, amount) {
+  if (!gs.affection) gs.affection = {};
+  const prev = gs.affection[charId] || 0;
+  if (prev >= MAX_AFFECTION) return;
+  const next = Math.min(prev + amount, MAX_AFFECTION);
+  gs.affection[charId] = next;
+  AFFECTION_MILESTONES.forEach((m, i) => {
+    if (prev < m && next >= m) {
+      gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i];
+      showToast(`💕 好感度里程碑！+${AFFECTION_REWARDS[i]} 💎`);
+    }
+  });
+}
+
+function getAffectionLabel(v) {
+  if (v >= 100) return '💞 心靈相通';
+  if (v >= 80)  return '💕 非常親密';
+  if (v >= 60)  return '❤️ 喜愛';
+  if (v >= 40)  return '🧡 友好';
+  if (v >= 20)  return '💛 熟悉';
+  return '🤍 初識';
+}
+
+// ══════════════════════════════════════════
+//  時間挑戰模式
+// ══════════════════════════════════════════
+let _pendingTimeAttack = false;
+function enterTimeAttack(stageId) {
+  _pendingTimeAttack = true;
+  enterStage(stageId);
+}
+
+function getTimeRating(secs, kanaCount) {
+  const per = secs / kanaCount;
+  if (per <= 3)  return { grade:'S', color:'#ffd700', bonus:1.5 };
+  if (per <= 5)  return { grade:'A', color:'#64dfff', bonus:1.0 };
+  if (per <= 8)  return { grade:'B', color:'#81c784', bonus:0.5 };
+  return         { grade:'C', color:'#aaa',    bonus:0   };
+}
+
+// ══════════════════════════════════════════
+//  抽卡系統
+// ══════════════════════════════════════════
+function getGachaPool() {
+  const pool = [];
+  CHARACTERS.forEach(c => {
+    if (c.rarity !== 'SSR') return;
+    (COSTUMES[c.id] || []).forEach(co => {
+      if (!isCostumeUnlocked(c.id, co.id)) pool.push({ charId: c.id, co });
+    });
+  });
+  return pool;
+}
+
+function doPull(count) {
+  const SINGLE_COST = 80, TEN_COST = 720;
+  const cost = count === 1 ? SINGLE_COST : TEN_COST;
+  if ((gs.diamonds || 0) < cost) { showToast('💎 鑽石不足！'); return; }
+  const pool = getGachaPool();
+  if (pool.length === 0) { showToast('🎉 所有時裝已收集完畢！'); return; }
+  gs.diamonds -= cost;
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    gs.gacha.pity++;
+    let item;
+    if (gs.gacha.pity >= 10 || pool.length === 1) {
+      item = pool[Math.floor(Math.random() * pool.length)];
+      gs.gacha.pity = 0;
+    } else {
+      if (Math.random() < 0.15 || i === count - 1 && results.length === 0) {
+        item = pool[Math.floor(Math.random() * pool.length)];
+      } else {
+        item = null;
+      }
+    }
+    if (item) {
+      gs.costumes[item.co.id] = true;
+      results.push(item);
+      const idx = pool.indexOf(item);
+      if (idx > -1) pool.splice(idx, 1);
+    }
+  }
+  if (!gs.gacha.history) gs.gacha.history = [];
+  gs.gacha.history.unshift(...results.map(r => r.co.id));
+  if (gs.gacha.history.length > 50) gs.gacha.history.length = 50;
+  saveGame();
+  renderGachaResult(results, count);
+}
+
+function renderGachaResult(results, pullCount) {
+  const wrap = document.getElementById('gacha-result');
+  if (results.length === 0) {
+    wrap.innerHTML = `<div style="color:#aaa;text-align:center;padding:20px">本次未獲得時裝<br><span style="font-size:12px">再接再厲！</span></div>`;
+  } else {
+    wrap.innerHTML = results.map(r => {
+      const c = getChar(r.charId);
+      const imgSrc = heroImgPath(r.charId, false, r.co.suffix);
+      return `<div class="gacha-card">
+        <img src="${imgSrc}" style="width:100%;height:120px;object-fit:cover;border-radius:8px" onerror="this.style.opacity='.3'">
+        <div style="font-size:11px;color:#ffd700;font-weight:bold">${c.name}</div>
+        <div style="font-size:10px;color:#ce93d8">「${r.co.name}」</div>
+      </div>`;
+    }).join('');
+  }
+  renderGachaMain();
+}
+
+function renderGachaMain() {
+  const d = document.getElementById('gacha-diamonds');
+  if (d) d.textContent = gs.diamonds || 0;
+  const pool = getGachaPool();
+  const remaining = document.getElementById('gacha-remaining');
+  if (remaining) remaining.textContent = `剩餘 ${pool.length} 件時裝待收集`;
+  const pityEl = document.getElementById('gacha-pity');
+  if (pityEl) pityEl.textContent = `保底進度 ${gs.gacha?.pity||0} / 10`;
 }
 
 // ══════════════════════════════════════════
