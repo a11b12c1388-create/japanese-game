@@ -63,7 +63,9 @@
   /* 底部資訊欄 */
   .home-bottom { position: relative; z-index: 2; width: 100%;
     background: linear-gradient(to top, #0f0c29ee 60%, transparent);
-    padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;
+    max-height: 100dvh; overflow-y: auto; scrollbar-width: none; }
+  .home-bottom::-webkit-scrollbar { display: none; }
 
   .home-char-banner { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 420px; }
   .home-char-info { flex: 1; min-width: 0; }
