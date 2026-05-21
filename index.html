@@ -1314,6 +1314,7 @@ function checkAchievements(ctx = {}) {
   if (tc >= 40) unlockAchievement('cos108_29');
   if (tc >= 45) unlockAchievement('cos108_30');
   // 如夢似幻（109）
+  const te = gs.totalExpEarned || 0;
   if (ctx.stageId === 'boss' && ctx.perfectClear !== undefined) unlockAchievement('cos109_01');
   if (ctx.stageId === 'boss' && ctx.perfectClear) unlockAchievement('cos109_02');
   if (ctx.stageId === 'boss2' && ctx.perfectClear !== undefined) unlockAchievement('cos109_03');
@@ -1335,7 +1336,6 @@ function checkAchievements(ctx = {}) {
   if ((gs.maxComboEver||0) >= 30) unlockAchievement('cos109_29');
   if ((gs.maxComboEver||0) >= 50) unlockAchievement('cos109_30');
   // 累計EXP
-  const te = gs.totalExpEarned || 0;
   if (te >= 5000)   unlockAchievement('exp5000');
   if (te >= 20000)  unlockAchievement('exp20000');
   if (te >= 50000)  unlockAchievement('exp50000');
