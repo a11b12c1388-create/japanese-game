@@ -405,6 +405,65 @@
   /* ── 抽卡 ── */
   .gacha-card { background:#1a1a2e;border:2px solid #ce93d8;border-radius:10px;overflow:hidden;padding:6px;text-align:center;display:flex;flex-direction:column;gap:4px; }
 
+  /* ── 任務頁面 Tab ── */
+  .tasks-tab { flex:1; padding:8px 12px; border-radius:20px; border:1px solid #ffffff22;
+    background:#ffffff11; color:#ccc; font-size:13px; font-weight:bold; cursor:pointer;
+    transition:all .2s; touch-action:manipulation; }
+  .tasks-tab.tasks-tab-active { background:linear-gradient(135deg,#4facfe,#00f2fe); color:#fff; border-color:transparent; }
+
+  /* ── 好感度劇情對話 ── */
+  #aff-dialogue-overlay { display:none; position:fixed; inset:0; z-index:500;
+    background:#000000cc; backdrop-filter:blur(4px);
+    align-items:flex-end; justify-content:center; padding-bottom:40px; }
+  #aff-dialogue-overlay.show { display:flex; }
+  .aff-dlg-card { background:linear-gradient(135deg,#1a1035,#2a1548); border:2px solid #f093fb55;
+    border-radius:20px; width:min(360px,92vw); padding:20px 20px 16px;
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    box-shadow:0 0 40px #f093fb33; }
+  .aff-dlg-char { font-size:60px; line-height:1; }
+  .aff-dlg-title { font-size:12px; color:#f093fb; letter-spacing:3px; font-weight:bold; }
+  .aff-dlg-bubble { background:#ffffff0f; border:1px solid #ffffff22; border-radius:14px;
+    padding:14px 16px; width:100%; font-size:15px; line-height:1.6; min-height:54px;
+    text-align:center; color:#fff; }
+  .aff-dlg-btn { padding:10px 28px; border:none; border-radius:20px; font-size:14px; font-weight:bold;
+    background:linear-gradient(135deg,#f093fb,#f5576c); color:#fff; cursor:pointer;
+    touch-action:manipulation; margin-top:4px; }
+
+  /* ── 戰令 ── */
+  #screen-battlepass { background:#0f0c29; justify-content:flex-start; padding:0; gap:0; overflow-y:auto; }
+  .bp-tier { display:flex; align-items:center; gap:12px; background:#ffffff0d;
+    border:1px solid #ffffff18; border-radius:14px; padding:12px 14px; }
+  .bp-tier.bp-claimed { border-color:#ffd70044; background:#ffd70009; }
+  .bp-tier.bp-ready { border-color:#43e97b88; background:#43e97b09; }
+  .bp-tier-num { font-size:11px; color:#aaa; text-align:center; flex-shrink:0; width:24px; }
+  .bp-tier-reward { flex:1; min-width:0; }
+  .bp-tier-pts { font-size:11px; color:#888; }
+  .bp-claim-btn { padding:7px 14px; border:none; border-radius:14px; font-size:12px; font-weight:bold;
+    cursor:pointer; touch-action:manipulation; flex-shrink:0; white-space:nowrap; }
+  .bp-claim-btn.ready { background:linear-gradient(135deg,#43e97b,#38f9d7); color:#111; }
+  .bp-claim-btn.claimed { background:#333; color:#666; cursor:default; }
+  .bp-claim-btn.locked { background:#222; color:#555; cursor:default; }
+  .bp-prog-wrap { background:#ffffff18; border-radius:10px; height:8px; overflow:hidden; width:100%; }
+  .bp-prog-bar { height:100%; background:linear-gradient(90deg,#f6d365,#fda085); border-radius:10px; transition:width .5s; }
+
+  /* ── 無盡挑戰 ── */
+  #screen-endless { background:#0a0820; justify-content:flex-start; padding:0; gap:0; position:relative; overflow:hidden; }
+  .endless-body { position:relative; z-index:2; flex:1; width:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:12px 16px; gap:16px; }
+  .endless-kana { font-size:clamp(60px,18vw,90px); font-weight:900; color:#f6d365;
+    text-shadow:0 0 24px #f6d36588; }
+  .endless-choices { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; max-width:320px; }
+  .endless-choice { padding:14px 10px; border-radius:14px; border:2px solid #4a3a6a;
+    background:linear-gradient(135deg,#1a1035,#2a1a4a); font-size:16px; font-weight:bold;
+    cursor:pointer; text-align:center; transition:all .15s; touch-action:manipulation; }
+  .endless-choice:active { transform:scale(.94); }
+  .endless-choice.correct { border-color:#43e97b; background:#0a200a; }
+  .endless-choice.wrong   { border-color:#ff4444; background:#2a0808; }
+  #endless-gameover { display:none; position:absolute; inset:0; z-index:10;
+    background:#000000cc; backdrop-filter:blur(6px);
+    flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  #endless-gameover.show { display:flex; }
+
   .toast { position: fixed; top: env(safe-area-inset-top, 16px); left: 50%;
     transform: translateX(-50%); background: #ffd700; color: #333; padding: 10px 22px;
     border-radius: 30px; font-weight: bold; z-index: 200; opacity: 0; transition: opacity .3s;
@@ -413,6 +472,16 @@
 </style>
 </head>
 <body>
+
+<!-- ═══════════════ 好感度劇情對話浮層 ═══════════════ -->
+<div id="aff-dialogue-overlay">
+  <div class="aff-dlg-card">
+    <div class="aff-dlg-char" id="aff-dlg-char">😊</div>
+    <div class="aff-dlg-title" id="aff-dlg-title">初識</div>
+    <div class="aff-dlg-bubble" id="aff-dlg-bubble"></div>
+    <button class="aff-dlg-btn" id="aff-dlg-btn" onclick="advanceAffDialogue()">下一句 ▶</button>
+  </div>
+</div>
 
 <!-- ═══════════════ 標題畫面 ═══════════════ -->
 <div id="screen-title" class="screen active">
@@ -453,7 +522,9 @@
     <div class="home-side-btn" onclick="showScreen('shop')">
       <span class="home-side-icon">🎬</span><span class="home-side-label">影片</span>
     </div>
-
+    <div class="home-side-btn" onclick="showScreen('battlepass')">
+      <span class="home-side-icon">🎖️</span><span class="home-side-label">戰令</span>
+    </div>
   </div>
   <!-- 底部主導航 -->
   <div class="home-bottom-nav">
@@ -466,13 +537,9 @@
     <div class="home-nav-item" onclick="showScreen('gacha')">
       <span class="home-nav-icon">🎰</span><span class="home-nav-label">抽卡</span>
     </div>
-    <div class="home-nav-item" onclick="showScreen('quests')">
-      <span class="home-nav-icon">📅</span><span class="home-nav-label">每日</span>
-      <span id="home-quest-badge" class="home-nav-badge" style="display:none">!</span>
-    </div>
-    <div class="home-nav-item" onclick="showScreen('weekly')">
-      <span class="home-nav-icon">📆</span><span class="home-nav-label">每週</span>
-      <span id="home-weekly-badge" class="home-nav-badge" style="display:none">!</span>
+    <div class="home-nav-item" onclick="showScreen('tasks')">
+      <span class="home-nav-icon">📋</span><span class="home-nav-label">任務</span>
+      <span id="home-tasks-badge" class="home-nav-badge" style="display:none">!</span>
     </div>
     <div class="home-nav-item" onclick="showScreen('inventory')">
       <span class="home-nav-icon">🎒</span><span class="home-nav-label">背包</span>
@@ -533,6 +600,20 @@
   <div style="padding:12px 16px 24px;width:100%;display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1" id="weekly-list"></div>
 </div>
 
+<!-- ═══════════════ 任務（每日＋每週） ═══════════════ -->
+<div id="screen-tasks" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">📋 任務</h2>
+    <div style="font-size:16px;font-weight:bold;color:#64dfff;flex-shrink:0">💎 <span id="tasks-diamonds">0</span></div>
+  </div>
+  <div style="display:flex;gap:8px;padding:10px 16px 0;flex-shrink:0">
+    <button class="tasks-tab tasks-tab-active" id="tab-daily" onclick="showTaskTab('daily')">📅 每日</button>
+    <button class="tasks-tab" id="tab-weekly" onclick="showTaskTab('weekly')">📆 每週</button>
+  </div>
+  <div id="tasks-content" style="display:flex;flex-direction:column;gap:12px;padding:12px 16px 24px;width:100%;overflow-y:auto;flex:1"></div>
+</div>
+
 <!-- ═══════════════ 背包 ═══════════════ -->
 <div id="screen-inventory" class="screen" style="justify-content:flex-start;padding:0;gap:0">
   <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
@@ -565,6 +646,8 @@
 <div id="screen-stages" class="screen">
   <h2 style="margin-bottom:4px">⚔️ 選擇關卡</h2>
   <div style="font-size:12px;color:#aaa;margin-bottom:12px">完成關卡解鎖新角色</div>
+  <button class="btn btn-gold" style="max-width:240px;min-height:44px;font-size:14px;margin-bottom:4px" onclick="startEndless()">🔥 無盡挑戰</button>
+  <div style="font-size:11px;color:#aaa;margin-bottom:12px">最高記錄：<span id="stages-endless-best">0</span></div>
   <div class="stage-grid" id="stage-grid"></div>
 
   <!-- 魔王關 -->
@@ -795,6 +878,47 @@
     </div>
     <div style="font-size:24px;font-weight:bold;color:#64dfff">+<span id="lr-reward">10</span> 💎</div>
     <button class="btn btn-gold" onclick="closeLoginReward()" style="min-height:44px">領取獎勵！</button>
+  </div>
+</div>
+
+<!-- ═══════════════ 戰令 ═══════════════ -->
+<div id="screen-battlepass" class="screen">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">🎖️ 戰令</h2>
+    <div style="font-size:14px;font-weight:bold;color:#f6d365;flex-shrink:0"><span id="bp-pts-display">0</span> pts</div>
+  </div>
+  <div style="padding:12px 16px 8px;flex-shrink:0">
+    <div style="font-size:12px;color:#aaa;margin-bottom:6px" id="bp-next-label">下一級：100 pts</div>
+    <div class="bp-prog-wrap"><div class="bp-prog-bar" id="bp-prog-bar" style="width:0%"></div></div>
+  </div>
+  <div id="bp-tier-list" style="display:flex;flex-direction:column;gap:10px;padding:8px 16px 24px;width:100%;overflow-y:auto;flex:1"></div>
+</div>
+
+<!-- ═══════════════ 無盡挑戰 ═══════════════ -->
+<div id="screen-endless" class="screen">
+  <div class="game-hud">
+    <div class="hud-right" style="width:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <button class="btn-quit" onclick="showScreen('stages')">← 退出</button>
+        <div style="font-size:16px;font-weight:bold;color:#f6d365" id="endless-score-disp">得分 0</div>
+        <div style="font-size:11px;color:#aaa" id="endless-best-disp">最高 0</div>
+      </div>
+      <div style="font-size:12px;color:#ffd700;text-align:right" id="endless-combo-disp">COMBO ×0　倍率 ×1</div>
+    </div>
+  </div>
+  <div class="endless-body">
+    <div class="endless-kana" id="endless-kana">あ</div>
+    <div class="endless-choices" id="endless-choices"></div>
+  </div>
+  <div id="endless-gameover">
+    <div class="ch-gameover-title">💀 挑戰結束</div>
+    <div class="ch-gameover-score" id="endless-final-score">得分：0</div>
+    <div class="ch-gameover-sub" id="endless-final-diamonds">獲得 💎 0</div>
+    <div class="ch-gameover-btns">
+      <button class="btn btn-gold" style="max-width:140px;min-height:44px" onclick="startEndless()">再挑戰</button>
+      <button class="btn btn-blue" style="max-width:140px;min-height:44px" onclick="showScreen('stages')">選關卡</button>
+    </div>
   </div>
 </div>
 
@@ -1086,6 +1210,9 @@ let gs = {
   gacha: { pity: 0, history: [], guarantee: false },
   weeklyQuests: null,  // { week, quests:[{id,progress,done}] }
   inventory: {},       // itemId → count
+  seenDialogues: {},   // key: `${charId}_${milestone}`
+  battlePass: { pts: 0, claimed: [] },
+  endlessBest: 0,
 };
 
 let game = {
@@ -1550,6 +1677,7 @@ function progressDailyQuest(type, value = 1) {
       qst.done = true;
       gs.diamonds = (gs.diamonds || 0) + def.reward * DIAMOND_MULT;
       changed = true;
+      addBattlePassPts(50);
       showToast(`📅 每日任務完成！+${def.reward} 💎`);
     }
   });
@@ -1698,6 +1826,9 @@ function loadGame() {
     if (!gs.affection) gs.affection = {};
     if (!gs.bestTimes) gs.bestTimes = {};
     if (!gs.gacha) gs.gacha = { pity: 0, history: [] };
+    if (!gs.seenDialogues) gs.seenDialogues = {};
+    if (!gs.battlePass) gs.battlePass = { pts: 0, claimed: [] };
+    if (gs.endlessBest === undefined) gs.endlessBest = 0;
   } else {
     // 初始化
     CHARACTERS.forEach(c => {
@@ -1731,6 +1862,9 @@ function showScreen(name) {
   if (name === 'gacha') renderGachaMain();
   if (name === 'weekly') renderWeekly();
   if (name === 'inventory') renderInventory();
+  if (name === 'tasks') renderTasks();
+  if (name === 'battlepass') renderBattlePass();
+  if (name === 'stages') { const el = document.getElementById('stages-endless-best'); if (el) el.textContent = gs.endlessBest || 0; }
 }
 
 function showToast(msg, duration = 2000) {
@@ -1809,19 +1943,14 @@ function renderHome() {
   const affText = document.getElementById('home-aff-text');
   if (affBar) affBar.style.width = aff + '%';
   if (affText) affText.textContent = getAffectionLabel(aff);
-  // 每日任務角標
+  // 任務角標（每日 + 每週合併）
   ensureDailyQuests();
-  const badge = document.getElementById('home-quest-badge');
-  if (badge) {
-    const hasUndone = gs.dailyQuests.quests.some(q => !q.done);
-    badge.style.display = hasUndone ? 'inline' : 'none';
-  }
-  // 每週任務角標
   ensureWeeklyQuests();
-  const wbadge = document.getElementById('home-weekly-badge');
-  if (wbadge) {
-    const hasUndone = gs.weeklyQuests.quests.some(q => !q.done);
-    wbadge.style.display = hasUndone ? 'inline' : 'none';
+  const tasksBadge = document.getElementById('home-tasks-badge');
+  if (tasksBadge) {
+    const dailyUndone = gs.dailyQuests.quests.some(q => !q.done);
+    const weeklyUndone = gs.weeklyQuests.quests.some(q => !q.done);
+    tasksBadge.style.display = (dailyUndone || weeklyUndone) ? 'inline' : 'none';
   }
   // 背包角標
   const ibadge = document.getElementById('home-inv-badge');
@@ -2259,10 +2388,12 @@ function allRoundsComplete() {
   try { progressDailyQuest('stageid', game.stageId); } catch(e) {}
   try { progressWeeklyQuest('clear', 1); } catch(e) {}
   try { progressWeeklyQuest('stageid', game.stageId); } catch(e) {}
+  addBattlePassPts(20);
   if (game.mistakes === 0) {
     gs.perfectClears = (gs.perfectClears || 0) + 1;
     try { progressDailyQuest('perfect', 1); } catch(e) {}
     try { progressWeeklyQuest('perfect', 1); } catch(e) {}
+    addBattlePassPts(10);
   }
 
   // 💎 鑽石獎勵
@@ -2827,6 +2958,7 @@ function progressWeeklyQuest(type, value) {
       sq.done = true;
       gs.diamonds = (gs.diamonds || 0) + def.diamonds;
       addItem(def.item);
+      addBattlePassPts(150);
       showToast(`📆 每週任務完成！+${def.diamonds} 💎 + ${ITEMS[def.item].icon}${ITEMS[def.item].name}`);
       saveGame();
       renderInventory();
@@ -2859,6 +2991,305 @@ function renderWeekly() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ══════════════════════════════════════════
+//  任務合併頁 (Tasks)
+// ══════════════════════════════════════════
+let activeTaskTab = 'daily';
+
+function showTaskTab(tab) {
+  activeTaskTab = tab;
+  document.getElementById('tab-daily').className = 'tasks-tab' + (tab === 'daily' ? ' tasks-tab-active' : '');
+  document.getElementById('tab-weekly').className = 'tasks-tab' + (tab === 'weekly' ? ' tasks-tab-active' : '');
+  renderTasks();
+}
+
+function renderTasks() {
+  const dEl = document.getElementById('tasks-diamonds');
+  if (dEl) dEl.textContent = gs.diamonds || 0;
+  if (activeTaskTab === 'daily') renderDailyTab();
+  else renderWeeklyTab();
+}
+
+function renderDailyTab() {
+  ensureDailyQuests();
+  const content = document.getElementById('tasks-content');
+  if (!content) return;
+  const done = gs.dailyQuests.quests.filter(q => q.done).length;
+  content.innerHTML = `<div style="font-size:13px;color:#aaa">今日完成 ${done} / 3</div>` +
+    gs.dailyQuests.quests.map(qst => {
+      const def = getDailyQuestDef(qst.id);
+      if (!def) return '';
+      const pct = def.type === 'stageid' || def.type === 'combo' || def.type === 'chscore'
+        ? (qst.done ? 100 : 0)
+        : Math.round(qst.progress / def.target * 100);
+      return `<div class="quest-item ${qst.done ? 'quest-done' : ''}">
+        <div class="quest-icon">${qst.done ? '✅' : '📋'}</div>
+        <div class="quest-body">
+          <div class="quest-desc">${def.desc}</div>
+          <div class="quest-bar-wrap"><div class="quest-bar" style="width:${pct}%"></div></div>
+          <div class="quest-progress">${def.type === 'stageid' || def.type === 'combo' || def.type === 'chscore'
+            ? (qst.done ? '已完成' : '未完成')
+            : `${qst.progress} / ${def.target}`}</div>
+        </div>
+        <div class="quest-reward">+${def.reward} 💎</div>
+      </div>`;
+    }).join('');
+}
+
+function renderWeeklyTab() {
+  ensureWeeklyQuests();
+  const content = document.getElementById('tasks-content');
+  if (!content) return;
+  content.innerHTML = `<div style="font-size:13px;color:#43e97b">${daysUntilMonday()} 天後重置</div>` +
+    gs.weeklyQuests.quests.map(sq => {
+      const def = WEEKLY_POOL.find(q => q.id === sq.id);
+      if (!def) return '';
+      const pct = Math.min(sq.progress / def.target * 100, 100);
+      const item = ITEMS[def.item];
+      return `<div style="background:#ffffff0d;border:1px solid ${sq.done ? '#43e97b44' : '#ffffff15'};border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="font-size:14px;font-weight:bold;color:${sq.done ? '#43e97b' : '#fff'}">${sq.done ? '✅ ' : ''}${def.desc}</div>
+          <div style="font-size:11px;color:#aaa;white-space:nowrap">${sq.progress} / ${def.target}</div>
+        </div>
+        <div style="background:#ffffff15;border-radius:99px;height:8px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#43e97b,#38f9d7);border-radius:99px;transition:width .3s"></div>
+        </div>
+        <div style="display:flex;gap:8px;font-size:12px">
+          <span style="color:#64dfff">💎 ${def.diamonds.toLocaleString()}</span>
+          <span style="color:${item.color}">${item.icon} ${item.name}</span>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════
+//  好感度劇情對話
+// ══════════════════════════════════════════
+const AFFECTION_DIALOGUES = {
+  25:  { title:'初識', icon:'😊', lines:['謝謝你一直陪著我練習！', '你的認真讓我很感動呢。'] },
+  50:  { title:'熟識', icon:'🥰', lines:['每次看到你我都會心跳加速…', '希望我們能一起繼續努力！'] },
+  75:  { title:'深交', icon:'💕', lines:['你已經是我最重要的人了。', '不管發生什麼，我都會在你身邊。'] },
+  100: { title:'摯愛', icon:'💖', lines:['我的心裡只有你了…', '謝謝你讓我的世界變得如此美好。'] },
+};
+
+let _affDlgQueue = [];
+let _affDlgLineIdx = 0;
+
+function showAffectionDialogue(charId, milestone) {
+  const dlg = AFFECTION_DIALOGUES[milestone];
+  if (!dlg) return;
+  if (!gs.seenDialogues) gs.seenDialogues = {};
+  const key = `${charId}_${milestone}`;
+  if (gs.seenDialogues[key]) return;
+  gs.seenDialogues[key] = true;
+  _affDlgQueue = dlg.lines;
+  _affDlgLineIdx = 0;
+  const ch = getChar(charId);
+  document.getElementById('aff-dlg-char').textContent = dlg.icon;
+  document.getElementById('aff-dlg-title').textContent = (ch ? ch.name + ' — ' : '') + dlg.title;
+  document.getElementById('aff-dlg-bubble').textContent = _affDlgQueue[0];
+  const btn = document.getElementById('aff-dlg-btn');
+  btn.textContent = _affDlgQueue.length > 1 ? '下一句 ▶' : '關閉';
+  document.getElementById('aff-dialogue-overlay').classList.add('show');
+  saveGame();
+}
+
+function advanceAffDialogue() {
+  _affDlgLineIdx++;
+  if (_affDlgLineIdx >= _affDlgQueue.length) {
+    document.getElementById('aff-dialogue-overlay').classList.remove('show');
+    return;
+  }
+  document.getElementById('aff-dlg-bubble').textContent = _affDlgQueue[_affDlgLineIdx];
+  const btn = document.getElementById('aff-dlg-btn');
+  btn.textContent = _affDlgLineIdx >= _affDlgQueue.length - 1 ? '關閉' : '下一句 ▶';
+}
+
+// ══════════════════════════════════════════
+//  戰令系統
+// ══════════════════════════════════════════
+const BATTLE_PASS_TIERS = [
+  { pts:100,  reward:{ type:'diamond', amount:200 } },
+  { pts:250,  reward:{ type:'diamond', amount:300 } },
+  { pts:500,  reward:{ type:'item',    item:'exp2x',    amount:2 } },
+  { pts:800,  reward:{ type:'diamond', amount:500 } },
+  { pts:1200, reward:{ type:'item',    item:'aff_pack', amount:1 } },
+  { pts:1800, reward:{ type:'diamond', amount:800 } },
+  { pts:2500, reward:{ type:'item',    item:'guarantee',amount:1 } },
+  { pts:3500, reward:{ type:'diamond', amount:1200 } },
+  { pts:5000, reward:{ type:'item',    item:'diamond_m',amount:1 } },
+  { pts:7000, reward:{ type:'diamond', amount:2000 } },
+];
+
+function addBattlePassPts(n) {
+  if (!gs.battlePass) gs.battlePass = { pts: 0, claimed: [] };
+  gs.battlePass.pts = (gs.battlePass.pts || 0) + n;
+  saveGame();
+}
+
+function claimBattlePassTier(idx) {
+  if (!gs.battlePass) gs.battlePass = { pts: 0, claimed: [] };
+  const tier = BATTLE_PASS_TIERS[idx];
+  if (!tier) return;
+  if ((gs.battlePass.pts || 0) < tier.pts) { showToast('⭐ 點數不足！'); return; }
+  if (gs.battlePass.claimed.includes(idx)) { showToast('已領取過了'); return; }
+  gs.battlePass.claimed.push(idx);
+  const r = tier.reward;
+  if (r.type === 'diamond') {
+    gs.diamonds = (gs.diamonds || 0) + r.amount;
+    showToast(`🎖️ 領取獎勵 +${r.amount} 💎`);
+  } else if (r.type === 'item') {
+    for (let i = 0; i < r.amount; i++) try { addItem(r.item); } catch(e) {}
+    const itemName = (typeof ITEMS !== 'undefined' && ITEMS[r.item]) ? ITEMS[r.item].name : r.item;
+    showToast(`🎖️ 領取 ${itemName} × ${r.amount}`);
+  }
+  saveGame();
+  renderBattlePass();
+}
+
+function renderBattlePass() {
+  if (!gs.battlePass) gs.battlePass = { pts: 0, claimed: [] };
+  const pts = gs.battlePass.pts || 0;
+  const claimed = gs.battlePass.claimed || [];
+
+  const ptsEl = document.getElementById('bp-pts-display');
+  if (ptsEl) ptsEl.textContent = pts;
+
+  // progress bar toward next unclaimed tier
+  const nextTier = BATTLE_PASS_TIERS.find((t, i) => !claimed.includes(i));
+  const nextLabel = document.getElementById('bp-next-label');
+  const progBar = document.getElementById('bp-prog-bar');
+  if (nextTier) {
+    const pct = Math.min(pts / nextTier.pts * 100, 100);
+    if (nextLabel) nextLabel.textContent = `下一級：${nextTier.pts} pts`;
+    if (progBar) progBar.style.width = pct + '%';
+  } else {
+    if (nextLabel) nextLabel.textContent = '全部通關！';
+    if (progBar) progBar.style.width = '100%';
+  }
+
+  const list = document.getElementById('bp-tier-list');
+  if (!list) return;
+  list.innerHTML = BATTLE_PASS_TIERS.map((tier, idx) => {
+    const isClaimed = claimed.includes(idx);
+    const canClaim = pts >= tier.pts && !isClaimed;
+    const r = tier.reward;
+    let rewardText = r.type === 'diamond' ? `💎 ${r.amount}` : `${r.item} × ${r.amount}`;
+    let cls = 'bp-tier';
+    if (isClaimed) cls += ' bp-claimed';
+    else if (canClaim) cls += ' bp-ready';
+    let btnCls = 'bp-claim-btn';
+    let btnLabel = '領取';
+    if (isClaimed) { btnCls += ' claimed'; btnLabel = '✅ 已領'; }
+    else if (canClaim) { btnCls += ' ready'; }
+    else { btnCls += ' locked'; btnLabel = '🔒'; }
+    return `<div class="${cls}">
+      <div class="bp-tier-num">${idx+1}</div>
+      <div class="bp-tier-reward">
+        <div style="font-size:14px;font-weight:bold;color:${isClaimed?'#666':'#fff'}">${rewardText}</div>
+        <div class="bp-tier-pts">${tier.pts} pts 解鎖</div>
+      </div>
+      <button class="${btnCls}" onclick="claimBattlePassTier(${idx})" ${isClaimed||!canClaim?'disabled':''}>${btnLabel}</button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  無盡挑戰模式
+// ══════════════════════════════════════════
+const ENDLESS_KANA_POOL = (() => {
+  const base = [
+    {h:'あ',r:'a'},{h:'い',r:'i'},{h:'う',r:'u'},{h:'え',r:'e'},{h:'お',r:'o'},
+    {h:'か',r:'ka'},{h:'き',r:'ki'},{h:'く',r:'ku'},{h:'け',r:'ke'},{h:'こ',r:'ko'},
+    {h:'さ',r:'sa'},{h:'し',r:'shi'},{h:'す',r:'su'},{h:'せ',r:'se'},{h:'そ',r:'so'},
+    {h:'た',r:'ta'},{h:'ち',r:'chi'},{h:'つ',r:'tsu'},{h:'て',r:'te'},{h:'と',r:'to'},
+    {h:'な',r:'na'},{h:'に',r:'ni'},{h:'ぬ',r:'nu'},{h:'ね',r:'ne'},{h:'の',r:'no'},
+    {h:'は',r:'ha'},{h:'ひ',r:'hi'},{h:'ふ',r:'fu'},{h:'へ',r:'he'},{h:'ほ',r:'ho'},
+    {h:'ま',r:'ma'},{h:'み',r:'mi'},{h:'む',r:'mu'},{h:'め',r:'me'},{h:'も',r:'mo'},
+    {h:'や',r:'ya'},{h:'ゆ',r:'yu'},{h:'よ',r:'yo'},
+    {h:'ら',r:'ra'},{h:'り',r:'ri'},{h:'る',r:'ru'},{h:'れ',r:'re'},{h:'ろ',r:'ro'},
+    {h:'わ',r:'wa'},{h:'を',r:'wo'},{h:'ん',r:'n'},
+  ];
+  const daku = [
+    {h:'が',r:'ga'},{h:'ぎ',r:'gi'},{h:'ぐ',r:'gu'},{h:'げ',r:'ge'},{h:'ご',r:'go'},
+    {h:'ざ',r:'za'},{h:'じ',r:'ji'},{h:'ず',r:'zu'},{h:'ぜ',r:'ze'},{h:'ぞ',r:'zo'},
+    {h:'だ',r:'da'},{h:'で',r:'de'},{h:'ど',r:'do'},
+    {h:'ば',r:'ba'},{h:'び',r:'bi'},{h:'ぶ',r:'bu'},{h:'べ',r:'be'},{h:'ぼ',r:'bo'},
+    {h:'ぱ',r:'pa'},{h:'ぴ',r:'pi'},{h:'ぷ',r:'pu'},{h:'ぺ',r:'pe'},{h:'ぽ',r:'po'},
+  ];
+  return [...base, ...daku];
+})();
+
+let endless = { score:0, combo:0, multiplier:1, running:false, currentKana:null };
+
+function startEndless() {
+  showScreen('endless');
+  endless = { score:0, combo:0, multiplier:1, running:true, currentKana:null };
+  document.getElementById('endless-gameover').classList.remove('show');
+  document.getElementById('endless-best-disp').textContent = '最高 ' + (gs.endlessBest || 0);
+  nextEndlessQuestion();
+}
+
+function nextEndlessQuestion() {
+  if (!endless.running) return;
+  updateEndlessHUD();
+  const pool = ENDLESS_KANA_POOL;
+  const correct = pool[Math.floor(Math.random() * pool.length)];
+  endless.currentKana = correct;
+  document.getElementById('endless-kana').textContent = correct.h;
+
+  // Build 4 choices: 1 correct + 3 wrong
+  const wrongPool = pool.filter(k => k.r !== correct.r);
+  const wrongs = shuffle(wrongPool).slice(0, 3);
+  const choices = shuffle([correct, ...wrongs]);
+
+  const grid = document.getElementById('endless-choices');
+  grid.innerHTML = choices.map(c =>
+    `<button class="endless-choice" onclick="pickEndless('${c.r}')">${c.r}</button>`
+  ).join('');
+}
+
+function pickEndless(romaji) {
+  if (!endless.running) return;
+  const correct = endless.currentKana.r === romaji;
+  const btns = document.querySelectorAll('.endless-choice');
+  if (correct) {
+    endless.combo++;
+    endless.multiplier = Math.min(1 + Math.floor(endless.combo / 5), 5);
+    endless.score += 10 * endless.multiplier;
+    // highlight correct
+    btns.forEach(b => { if (b.textContent === romaji) b.classList.add('correct'); });
+    setTimeout(() => nextEndlessQuestion(), 350);
+  } else {
+    endless.running = false;
+    // highlight correct and wrong
+    btns.forEach(b => {
+      if (b.textContent === romaji) b.classList.add('wrong');
+      if (b.textContent === endless.currentKana.r) b.classList.add('correct');
+    });
+    setTimeout(() => endEndless(), 700);
+  }
+}
+
+function updateEndlessHUD() {
+  document.getElementById('endless-score-disp').textContent = '得分 ' + endless.score;
+  document.getElementById('endless-combo-disp').textContent = `COMBO ×${endless.combo}　倍率 ×${endless.multiplier}`;
+}
+
+function endEndless() {
+  const score = endless.score;
+  if (score > (gs.endlessBest || 0)) gs.endlessBest = score;
+  const diamonds = Math.min(Math.floor(score / 100), 500);
+  gs.diamonds = (gs.diamonds || 0) + diamonds;
+  addBattlePassPts(Math.floor(score / 10));
+  saveGame();
+  updateEndlessHUD();
+  document.getElementById('endless-best-disp').textContent = '最高 ' + gs.endlessBest;
+  document.getElementById('endless-final-score').textContent = `得分：${score}`;
+  document.getElementById('endless-final-diamonds').textContent = `獲得 💎 ${diamonds}`;
+  document.getElementById('endless-gameover').classList.add('show');
 }
 
 // ══════════════════════════════════════════
@@ -2976,6 +3407,10 @@ function addAffection(charId, amount) {
   gs.affection[charId] = next;
   AFFECTION_MILESTONES.forEach((m, i) => {
     if (prev < m && next >= m) {
+      // 劇情對話（延遲以避免遮蓋其他 toast）
+      if ([25, 50, 75, 100].includes(m)) {
+        setTimeout(() => showAffectionDialogue(charId, m), 800);
+      }
       if (m === 100) {
         const coId = AFFECTION_COSTUME_REWARDS[charId];
         if (coId && !gs.costumes[coId]) {
