@@ -579,6 +579,25 @@
   <button class="btn btn-blue" onclick="closeVideoOverlay()" style="max-width:160px">✕ 關閉</button>
 </div>
 
+<!-- 影片商店預覽浮層 -->
+<div id="shop-preview-overlay" style="display:none;position:fixed;inset:0;z-index:8500;background:#000c;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#1a1035;border:1px solid #ffffff22;border-radius:20px;max-width:400px;width:100%;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px #00000099">
+    <!-- 影片預覽區 -->
+    <div style="position:relative;width:100%;aspect-ratio:16/9;background:#000">
+      <video id="preview-video" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover"></video>
+      <div style="position:absolute;top:10px;left:12px;background:#000000aa;border-radius:8px;padding:3px 10px;font-size:13px;font-weight:bold;color:#fff" id="preview-vid-label">No.001</div>
+    </div>
+    <!-- 資訊與按鈕 -->
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:14px;color:#aaa;text-align:center" id="preview-status-text"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn" style="flex:1;min-height:44px;font-size:14px;background:#ffffff18;color:#fff;border-radius:12px" onclick="closeShopPreview()">✕ 關閉</button>
+        <button id="preview-buy-btn" class="btn btn-blue" style="flex:1;min-height:44px;font-size:14px;border-radius:12px" onclick="buyVideoFromPreview()"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ 成就通知浮窗 ═══════════════ -->
 <div id="achievement-popup">
   <div class="ach-pop-icon">🏆</div>
@@ -1783,9 +1802,10 @@ function renderShop() {
         </div>
       </div>`;
     } else {
-      return `<div class="shop-video-card locked" onclick="buyVideo('${vid}')">
-        <div class="shop-video-thumb-wrap" style="background:#111;display:flex;align-items:center;justify-content:center">
-          <div style="font-size:36px">🔒</div>
+      return `<div class="shop-video-card locked" onclick="openShopPreview('${vid}')">
+        <div class="shop-video-thumb-wrap" style="background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px">
+          <div style="font-size:32px">🔒</div>
+          <div style="font-size:10px;color:#666">點擊預覽</div>
         </div>
         <div class="shop-video-info">
           <div class="shop-video-id">No.${vid}</div>
@@ -1796,6 +1816,46 @@ function renderShop() {
   }).join('');
 }
 
+let _previewVid = null;
+
+function openShopPreview(vid) {
+  _previewVid = vid;
+  const src = VIDEO_BASE_RGU + 'RGU_HV_' + vid + '.mp4';
+  const price = getVideoPrice(vid);
+  const canAfford = (gs.diamonds || 0) >= price;
+  const overlay = document.getElementById('shop-preview-overlay');
+  const video = document.getElementById('preview-video');
+  document.getElementById('preview-vid-label').textContent = 'No.' + vid;
+  document.getElementById('preview-status-text').textContent =
+    canAfford ? `需要 💎 ${price}（持有 💎 ${gs.diamonds}）` : `💎 不足，需要 ${price}（持有 ${gs.diamonds}）`;
+  const buyBtn = document.getElementById('preview-buy-btn');
+  buyBtn.textContent = `💎 ${price} 解鎖`;
+  buyBtn.style.opacity = canAfford ? '1' : '0.45';
+  buyBtn.style.pointerEvents = canAfford ? '' : 'none';
+  video.src = src;
+  video.load();
+  video.play().catch(()=>{});
+  overlay.style.display = 'flex';
+}
+
+function closeShopPreview() {
+  const overlay = document.getElementById('shop-preview-overlay');
+  const video = document.getElementById('preview-video');
+  video.pause();
+  video.src = '';
+  overlay.style.display = 'none';
+  _previewVid = null;
+}
+
+function buyVideoFromPreview() {
+  if (!_previewVid) return;
+  const vid = _previewVid;
+  const price = getVideoPrice(vid);
+  if ((gs.diamonds || 0) < price) { showToast('💎 鑽石不足！'); return; }
+  closeShopPreview();
+  buyVideo(vid);
+}
+
 function buyVideo(vid) {
   const key = 'rgu_' + vid;
   if (gs.unlockedVideos && gs.unlockedVideos[key]) return;
@@ -1804,8 +1864,6 @@ function buyVideo(vid) {
     showToast('💎 鑽石不足！繼續通關關卡獲得更多鑽石');
     return;
   }
-  // Confirm purchase
-  if (!confirm(`花費 💎${price} 鑽石解鎖影片 No.${vid}？\n目前持有：💎${gs.diamonds}`)) return;
   gs.diamonds -= price;
   if (!gs.unlockedVideos) gs.unlockedVideos = {};
   gs.unlockedVideos[key] = true;
