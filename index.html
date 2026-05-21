@@ -1518,9 +1518,9 @@ function ensureDailyQuests() {
   const today = todayStr();
   if (gs.dailyQuests && gs.dailyQuests.date === today) return;
   // 每天隨機抽 3 個任務（難易混合）
-  const easy   = QUEST_POOL.filter(q => q.reward <= 25);
-  const medium = QUEST_POOL.filter(q => q.reward > 25 && q.reward <= 50);
-  const hard   = QUEST_POOL.filter(q => q.reward > 50);
+  const easy   = QUEST_POOL.filter(q => q.reward <= 60);
+  const medium = QUEST_POOL.filter(q => q.reward > 60 && q.reward <= 110);
+  const hard   = QUEST_POOL.filter(q => q.reward > 110);
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const chosen = [pick(easy), pick(medium), pick(hard)];
   gs.dailyQuests = {
