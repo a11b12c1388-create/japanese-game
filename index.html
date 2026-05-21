@@ -1184,13 +1184,10 @@ function checkAchievements(ctx = {}) {
   if (sc >= 50) unlockAchievement('cos50_ssr');
   if (sc >= 109) unlockAchievement('cos_all_ssr');
   // 成名的代價 補完（108）
-  const tc = gs.totalClears || 0;
-  const pc = gs.perfectClears || 0;
   if (tc >= 15) unlockAchievement('cos108_02');
   if (tc >= 20) unlockAchievement('cos108_03');
   if (pc >= 5)  unlockAchievement('cos108_06');
   if (pc >= 8)  unlockAchievement('cos108_08');
-  const M = gs.totalMatches || 0;
   if (M >= 100) unlockAchievement('cos108_11');
   if (M >= 150) unlockAchievement('cos108_14');
   if (M >= 200) unlockAchievement('cos108_16');
