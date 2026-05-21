@@ -435,6 +435,8 @@
       <button class="btn btn-purple" onclick="showScreen('collection')">📖 角色圖鑑</button>
       <button class="btn btn-blue" onclick="showScreen('achievements')">🏆 成就</button>
       <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('quests')">📅 每日任務 <span id="home-quest-badge" style="display:none;background:#e74c3c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">!</span></button>
+      <button class="btn" style="background:linear-gradient(135deg,#43e97b,#38f9d7);color:#333" onclick="showScreen('weekly')">📆 每週任務 <span id="home-weekly-badge" style="display:none;background:#e74c3c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">!</span></button>
+      <button class="btn" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff" onclick="showScreen('inventory')">🎒 背包 <span id="home-inv-badge" style="display:none;background:#fff;color:#f5576c;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px;font-weight:bold">0</span></button>
       <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('titles')">🏅 稱號</button>
       <button class="btn" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#333" onclick="showScreen('gacha')">🎰 時裝抽卡</button>
       <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
@@ -484,6 +486,25 @@
     <div class="ach-pop-desc"></div>
     <div class="ach-pop-diamonds" style="font-size:12px;color:#64dfff;font-weight:bold;margin-top:2px"></div>
   </div>
+</div>
+
+<!-- ═══════════════ 每週任務 ═══════════════ -->
+<div id="screen-weekly" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">📆 每週任務</h2>
+    <div style="font-size:13px;color:#43e97b;flex-shrink:0" id="weekly-reset-info"></div>
+  </div>
+  <div style="padding:12px 16px 24px;width:100%;display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1" id="weekly-list"></div>
+</div>
+
+<!-- ═══════════════ 背包 ═══════════════ -->
+<div id="screen-inventory" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">🎒 背包</h2>
+  </div>
+  <div style="padding:12px 16px 24px;width:100%;display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1" id="inventory-list"></div>
 </div>
 
 <!-- ═══════════════ 成就畫面 ═══════════════ -->
@@ -1014,7 +1035,9 @@ let gs = {
   affection: {},
   affectionItems: {},
   bestTimes: {},
-  gacha: { pity: 0, history: [] },
+  gacha: { pity: 0, history: [], guarantee: false },
+  weeklyQuests: null,  // { week, quests:[{id,progress,done}] }
+  inventory: {},       // itemId → count
 };
 
 let game = {
@@ -1171,6 +1194,8 @@ const ACHIEVEMENTS = [
 // ══════════════════════════════════════════
 //  成就系統
 // ══════════════════════════════════════════
+const DIAMOND_MULT = 30;
+
 const ACH_DIAMONDS = {
   // 學習
   first_match:30, clear_dan1:40, clear_all_base:80, clear_all_comp:120, clear_boss:150,
@@ -1218,7 +1243,7 @@ function unlockAchievement(id) {
   gs.achievements[id] = true;
   const a = ACHIEVEMENTS.find(x => x.id === id);
   if (!a) return;
-  const d = ACH_DIAMONDS[id] || 0;
+  const d = (ACH_DIAMONDS[id] || 0) * DIAMOND_MULT;
   if (d > 0) gs.diamonds = (gs.diamonds || 0) + d;
   showAchievementPopup(a, d);
 }
@@ -1475,7 +1500,7 @@ function progressDailyQuest(type, value = 1) {
     }
     if (!qst.done && qst.progress >= def.target) {
       qst.done = true;
-      gs.diamonds = (gs.diamonds || 0) + def.reward;
+      gs.diamonds = (gs.diamonds || 0) + def.reward * DIAMOND_MULT;
       changed = true;
       showToast(`📅 每日任務完成！+${def.reward} 💎`);
     }
@@ -1656,6 +1681,8 @@ function showScreen(name) {
   if (name === 'quests') renderQuests();
   if (name === 'titles') renderTitles();
   if (name === 'gacha') renderGachaMain();
+  if (name === 'weekly') renderWeekly();
+  if (name === 'inventory') renderInventory();
 }
 
 function showToast(msg, duration = 2000) {
@@ -1703,6 +1730,7 @@ function renderTitle() {
 function startGame() {
   loadGame();
   checkLoginStreak();
+  ensureWeeklyQuests();
   showScreen('home');
 }
 
@@ -1737,12 +1765,26 @@ function renderHome() {
   const affText = document.getElementById('home-aff-text');
   if (affBar) affBar.style.width = aff + '%';
   if (affText) affText.textContent = getAffectionLabel(aff);
-  // 每日任務角標：有未完成任務就顯示紅點
+  // 每日任務角標
   ensureDailyQuests();
   const badge = document.getElementById('home-quest-badge');
   if (badge) {
     const hasUndone = gs.dailyQuests.quests.some(q => !q.done);
     badge.style.display = hasUndone ? 'inline' : 'none';
+  }
+  // 每週任務角標
+  ensureWeeklyQuests();
+  const wbadge = document.getElementById('home-weekly-badge');
+  if (wbadge) {
+    const hasUndone = gs.weeklyQuests.quests.some(q => !q.done);
+    wbadge.style.display = hasUndone ? 'inline' : 'none';
+  }
+  // 背包角標
+  const ibadge = document.getElementById('home-inv-badge');
+  if (ibadge) {
+    const n = totalInventoryCount();
+    ibadge.style.display = n > 0 ? 'inline' : 'none';
+    ibadge.textContent = n;
   }
 }
 
@@ -1808,6 +1850,7 @@ function useAffectionItem(id) {
   if ((gs.affectionItems[id] || 0) <= 0) return;
   gs.affectionItems[id]--;
   addAffection(id, 10);
+  try { progressWeeklyQuest('affitem', 1); } catch(e) {}
   saveGame();
   renderModalAffection(id);
   if (gs.activeCharId === id) renderHome();
@@ -1822,9 +1865,14 @@ function useAllAffectionItems(id) {
   const use = Math.min(count, needed);
   gs.affectionItems[id] = count - use;
   addAffection(id, use * 10);
+  try { progressWeeklyQuest('affitem', use); } catch(e) {}
   saveGame();
   renderModalAffection(id);
   if (gs.activeCharId === id) renderHome();
+}
+
+function useAffectionItemSingle_hook(id) {
+  try { progressWeeklyQuest('affitem', 1); } catch(e) {}
 }
 
 function renderModalCostumes(id) {
@@ -2113,6 +2161,8 @@ function checkMatch() {
       // 每日任務進度（在回合切換排程後才呼叫，避免例外中斷流程）
       try { progressDailyQuest('match', 1); } catch(e) {}
       try { progressDailyQuest('combo', game.combo); } catch(e) {}
+      try { progressWeeklyQuest('match', 1); } catch(e) {}
+      try { progressWeeklyQuest('combo', game.combo); } catch(e) {}
     }, 300);
   } else {
     setTimeout(() => {
@@ -2163,9 +2213,12 @@ function allRoundsComplete() {
   gs.totalClears = (gs.totalClears || 0) + 1;
   try { progressDailyQuest('clear', 1); } catch(e) {}
   try { progressDailyQuest('stageid', game.stageId); } catch(e) {}
+  try { progressWeeklyQuest('clear', 1); } catch(e) {}
+  try { progressWeeklyQuest('stageid', game.stageId); } catch(e) {}
   if (game.mistakes === 0) {
     gs.perfectClears = (gs.perfectClears || 0) + 1;
     try { progressDailyQuest('perfect', 1); } catch(e) {}
+    try { progressWeeklyQuest('perfect', 1); } catch(e) {}
   }
 
   // 💎 鑽石獎勵
@@ -2181,6 +2234,7 @@ function allRoundsComplete() {
   }
   // 首通額外加倍
   if (!prev) diamondEarned *= 2;
+  diamondEarned *= DIAMOND_MULT;
   gs.diamonds = (gs.diamonds || 0) + diamondEarned;
 
   // 好感度
@@ -2197,7 +2251,7 @@ function allRoundsComplete() {
     const isNew = !prevBest || secs < prevBest;
     if (isNew) gs.bestTimes[game.stageId] = secs;
     const bonusDiam = Math.round(diamondEarned * rating.bonus);
-    gs.diamonds = (gs.diamonds || 0) + bonusDiam;
+    gs.diamonds = (gs.diamonds || 0) + bonusDiam; // diamondEarned 已含 DIAMOND_MULT
     taResult = { secs, grade: rating.grade, color: rating.color, bonusDiam, isNew };
     game.timeAttack = false;
   }
@@ -2220,6 +2274,7 @@ function addExp(charId, amount) {
   if (!gs.chars[charId]) gs.chars[charId] = { lv:1, exp:0, unlocked:true };
   const cs = gs.chars[charId];
   if (cs.lv >= MAX_LEVEL) return { leveled: false, newLv: MAX_LEVEL };
+  if (gs._exp2xNext) { amount *= 2; gs._exp2xNext = false; showToast('📚 EXP加倍！'); }
   gs.totalExpEarned = (gs.totalExpEarned || 0) + amount;
   cs.exp += amount;
   let leveled = false;
@@ -2580,6 +2635,189 @@ function renderReviewSection() {
 }
 
 // ══════════════════════════════════════════
+//  道具定義
+// ══════════════════════════════════════════
+const ITEMS = {
+  exp2x:    { name:'EXP加倍券',    icon:'📚', desc:'下一場關卡 EXP 獲得量×2',           color:'#81c784' },
+  diamond_s:{ name:'小鑽石禮包',   icon:'💎', desc:'立即獲得 800 💎',                   color:'#64dfff' },
+  diamond_m:{ name:'中鑽石禮包',   icon:'💎', desc:'立即獲得 2400 💎',                  color:'#64dfff' },
+  diamond_l:{ name:'大鑽石禮包',   icon:'💎', desc:'立即獲得 8000 💎',                  color:'#ffd700' },
+  aff_pack: { name:'好感度大禮包', icon:'💕', desc:'對主角好感度 +30',                  color:'#f48fb1' },
+  guarantee:{ name:'保底券',       icon:'🎫', desc:'下次抽卡必定獲得時裝（不耗保底）',  color:'#ce93d8' },
+};
+
+function addItem(id, count = 1) {
+  if (!gs.inventory) gs.inventory = {};
+  gs.inventory[id] = (gs.inventory[id] || 0) + count;
+}
+
+function useItem(id) {
+  if (!gs.inventory || (gs.inventory[id] || 0) <= 0) return;
+  const item = ITEMS[id];
+  if (!item) return;
+  if (id === 'exp2x') {
+    gs._exp2xNext = true;
+    gs.inventory[id]--;
+    showToast('📚 EXP加倍券已啟動！下一場生效');
+  } else if (id === 'diamond_s') {
+    gs.diamonds = (gs.diamonds || 0) + 800;
+    gs.inventory[id]--;
+    showToast('💎 獲得 800 鑽石！');
+  } else if (id === 'diamond_m') {
+    gs.diamonds = (gs.diamonds || 0) + 2400;
+    gs.inventory[id]--;
+    showToast('💎 獲得 2400 鑽石！');
+  } else if (id === 'diamond_l') {
+    gs.diamonds = (gs.diamonds || 0) + 8000;
+    gs.inventory[id]--;
+    showToast('💎 獲得 8000 鑽石！');
+  } else if (id === 'aff_pack') {
+    addAffection(gs.activeCharId, 30);
+    gs.inventory[id]--;
+    showToast('💕 主角好感度 +30！');
+  } else if (id === 'guarantee') {
+    gs.gacha.guarantee = true;
+    gs.inventory[id]--;
+    showToast('🎫 保底券已啟動！下次抽卡必中');
+  }
+  saveGame();
+  renderInventory();
+  renderHome();
+}
+
+function totalInventoryCount() {
+  if (!gs.inventory) return 0;
+  return Object.values(gs.inventory).reduce((a, b) => a + b, 0);
+}
+
+function renderInventory() {
+  const list = document.getElementById('inventory-list');
+  if (!list) return;
+  if (!gs.inventory) gs.inventory = {};
+  const entries = Object.entries(ITEMS);
+  const hasAny = entries.some(([id]) => (gs.inventory[id] || 0) > 0);
+  if (!hasAny) {
+    list.innerHTML = `<div style="text-align:center;color:#555;padding:40px 0">背包是空的<br><span style="font-size:12px">完成每週任務可獲得道具</span></div>`;
+    return;
+  }
+  list.innerHTML = entries.map(([id, item]) => {
+    const count = gs.inventory[id] || 0;
+    if (count === 0) return '';
+    const active = (id === 'exp2x' && gs._exp2xNext) || (id === 'guarantee' && gs.gacha?.guarantee);
+    return `<div style="display:flex;align-items:center;gap:12px;background:#ffffff0d;border:1px solid #ffffff15;border-radius:12px;padding:12px 14px">
+      <div style="font-size:32px;flex-shrink:0">${item.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:bold;color:${item.color}">${item.name} <span style="color:#aaa;font-weight:normal">×${count}</span></div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">${item.desc}</div>
+        ${active ? `<div style="font-size:11px;color:#ffd700;margin-top:2px">✨ 已啟動</div>` : ''}
+      </div>
+      ${!active ? `<button onclick="useItem('${id}')" style="padding:8px 16px;border:none;border-radius:16px;background:linear-gradient(135deg,${item.color},#fff2);color:#fff;font-size:13px;font-weight:bold;cursor:pointer;touch-action:manipulation">使用</button>` : `<div style="font-size:11px;color:#ffd700;padding:8px">啟動中</div>`}
+    </div>`;
+  }).join('');
+  // 更新首頁背包角標
+  const badge = document.getElementById('home-inv-badge');
+  if (badge) {
+    const n = totalInventoryCount();
+    badge.style.display = n > 0 ? 'inline' : 'none';
+    badge.textContent = n;
+  }
+}
+
+// ══════════════════════════════════════════
+//  每週任務
+// ══════════════════════════════════════════
+const WEEKLY_POOL = [
+  { id:'w_match200',  desc:'累計配對成功 200 次', type:'match',   target:200, diamonds:3000, item:'diamond_m' },
+  { id:'w_clear10',   desc:'通關任意關卡 10 次',  type:'clear',   target:10,  diamonds:2500, item:'exp2x' },
+  { id:'w_perfect10', desc:'零失誤通關 10 次',    type:'perfect', target:10,  diamonds:4000, item:'guarantee' },
+  { id:'w_perfect5',  desc:'零失誤通關 5 次',     type:'perfect', target:5,   diamonds:2500, item:'aff_pack' },
+  { id:'w_combo30',   desc:'達成 30 連擊',        type:'combo',   target:30,  diamonds:3000, item:'exp2x' },
+  { id:'w_combo20',   desc:'達成 20 連擊',        type:'combo',   target:20,  diamonds:2000, item:'diamond_s' },
+  { id:'w_clear_boss',desc:'通關魔王關 3 次',     type:'stageid', target:'boss', diamonds:5000, item:'guarantee' },
+  { id:'w_match500',  desc:'累計配對成功 500 次', type:'match',   target:500, diamonds:6000, item:'diamond_l' },
+  { id:'w_clear20',   desc:'通關任意關卡 20 次',  type:'clear',   target:20,  diamonds:4500, item:'diamond_m' },
+  { id:'w_perfect15', desc:'零失誤通關 15 次',    type:'perfect', target:15,  diamonds:5500, item:'guarantee' },
+  { id:'w_combo50',   desc:'達成 50 連擊',        type:'combo',   target:50,  diamonds:6000, item:'diamond_l' },
+  { id:'w_aff20',     desc:'累計對任意角色使用 20 個好感道具', type:'affitem', target:20, diamonds:3500, item:'aff_pack' },
+];
+
+function weekStr() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.setDate(diff));
+  return mon.toISOString().slice(0, 10);
+}
+
+function daysUntilMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  return day === 1 ? 7 : (8 - day) % 7;
+}
+
+function ensureWeeklyQuests() {
+  const week = weekStr();
+  if (gs.weeklyQuests && gs.weeklyQuests.week === week) return;
+  const pool = [...WEEKLY_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
+  gs.weeklyQuests = {
+    week,
+    quests: pool.map(q => ({ id: q.id, progress: 0, done: false })),
+  };
+}
+
+function progressWeeklyQuest(type, value) {
+  if (!gs.weeklyQuests) return;
+  gs.weeklyQuests.quests.forEach(sq => {
+    if (sq.done) return;
+    const def = WEEKLY_POOL.find(q => q.id === sq.id);
+    if (!def) return;
+    if (def.type !== type) return;
+    if (type === 'stageid') {
+      if (value === def.target) sq.progress = Math.min(sq.progress + 1, def.target2 || 99);
+    } else if (type === 'combo') {
+      if (value >= def.target) sq.progress = def.target;
+    } else {
+      sq.progress = Math.min(sq.progress + value, def.target);
+    }
+    if (sq.progress >= def.target && !sq.done) {
+      sq.done = true;
+      gs.diamonds = (gs.diamonds || 0) + def.diamonds;
+      addItem(def.item);
+      showToast(`📆 每週任務完成！+${def.diamonds} 💎 + ${ITEMS[def.item].icon}${ITEMS[def.item].name}`);
+      saveGame();
+      renderInventory();
+    }
+  });
+}
+
+function renderWeekly() {
+  ensureWeeklyQuests();
+  const info = document.getElementById('weekly-reset-info');
+  if (info) info.textContent = `${daysUntilMonday()} 天後重置`;
+  const list = document.getElementById('weekly-list');
+  if (!list) return;
+  list.innerHTML = gs.weeklyQuests.quests.map(sq => {
+    const def = WEEKLY_POOL.find(q => q.id === sq.id);
+    if (!def) return '';
+    const pct = Math.min(sq.progress / def.target * 100, 100);
+    const item = ITEMS[def.item];
+    return `<div style="background:#ffffff0d;border:1px solid ${sq.done ? '#43e97b44' : '#ffffff15'};border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="font-size:14px;font-weight:bold;color:${sq.done ? '#43e97b' : '#fff'}">${sq.done ? '✅ ' : ''}${def.desc}</div>
+        <div style="font-size:11px;color:#aaa;white-space:nowrap">${sq.progress} / ${def.target}</div>
+      </div>
+      <div style="background:#ffffff15;border-radius:99px;height:8px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#43e97b,#38f9d7);border-radius:99px;transition:width .3s"></div>
+      </div>
+      <div style="display:flex;gap:8px;font-size:12px">
+        <span style="color:#64dfff">💎 ${def.diamonds.toLocaleString()}</span>
+        <span style="color:${item.color}">${item.icon} ${item.name}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
 //  連續登入獎勵
 // ══════════════════════════════════════════
 function checkLoginStreak() {
@@ -2593,7 +2831,7 @@ function checkLoginStreak() {
   ls.lastDate = today;
   const rewards = [20,30,50,80,120,160,250];
   const reward = rewards[Math.min(ls.streak-1, rewards.length-1)];
-  gs.diamonds = (gs.diamonds||0) + reward;
+  gs.diamonds = (gs.diamonds||0) + reward * DIAMOND_MULT;
   saveGame();
   showLoginReward(ls.streak, reward);
   checkTitles();
@@ -2704,8 +2942,8 @@ function addAffection(charId, amount) {
           const co = coList.find(x => x.id === coId);
           showToast(`💞 好感度滿！獲得 ${ch?.name}「${co?.name || coId}」時裝！`);
         } else {
-          gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i];
-          showToast(`💕 好感度里程碑！+${AFFECTION_REWARDS[i]} 💎`);
+          gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i] * DIAMOND_MULT;
+          showToast(`💕 好感度里程碑！+${AFFECTION_REWARDS[i] * DIAMOND_MULT} 💎`);
         }
       } else {
         gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i];
@@ -2785,9 +3023,10 @@ function doPull(count) {
     }
     gs.gacha.pity++;
     let item;
-    if (gs.gacha.pity >= 10 || pool.length === 1) {
+    if (gs.gacha.guarantee || gs.gacha.pity >= 10 || pool.length === 1) {
       item = pool[Math.floor(Math.random() * pool.length)];
       gs.gacha.pity = 0;
+      gs.gacha.guarantee = false;
     } else {
       if (Math.random() < 0.15) {
         item = pool[Math.floor(Math.random() * pool.length)];
