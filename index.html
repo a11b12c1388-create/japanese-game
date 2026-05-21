@@ -79,6 +79,22 @@
   .stat-label { font-size: 10px; color: #aaa; }
   .home-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; align-items: center; }
 
+  /* ── 商店影片卡 ── */
+  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s; }
+  .shop-video-card:active { transform:scale(.96); }
+  @media(hover:hover){.shop-video-card:hover{transform:scale(1.04);border-color:#64dfff;}}
+  .shop-video-card.unlocked { border-color:#64dfff55; }
+  .shop-video-card.locked { cursor:default; }
+  .shop-video-thumb { width:100%;aspect-ratio:9/16;object-fit:cover;display:block;background:#111;position:relative; }
+  .shop-video-thumb-wrap { position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;background:#111; }
+  .shop-video-thumb-wrap video { width:100%;height:100%;object-fit:cover;display:block; }
+  .shop-video-thumb-wrap .play-icon { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;background:#0006;opacity:0;transition:opacity .2s; }
+  .shop-video-card.unlocked:hover .play-icon { opacity:1; }
+  .shop-video-info { padding:6px 8px; }
+  .shop-video-id { font-size:11px;color:#aaa; }
+  .shop-video-price { font-size:13px;font-weight:bold;color:#64dfff; }
+  .shop-video-owned { font-size:13px;font-weight:bold;color:#81c784; }
+
   /* ── 成就通知 ── */
   #achievement-popup { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-120px);
     z-index: 9999; background: linear-gradient(135deg,#1a1035,#2a1a4a); border: 2px solid #ffd700;
@@ -370,13 +386,32 @@
       <div class="stat-box"><div class="stat-num" id="stat-stages">0</div><div class="stat-label">通關關卡</div></div>
       <div class="stat-box"><div class="stat-num" id="stat-chars">1</div><div class="stat-label">收集角色</div></div>
       <div class="stat-box"><div class="stat-num" id="stat-matches">0</div><div class="stat-label">成功配對</div></div>
+      <div class="stat-box" style="border-color:#64dfff44"><div class="stat-num" id="stat-diamonds" style="color:#64dfff">0</div><div class="stat-label">💎 鑽石</div></div>
     </div>
     <div class="home-btns">
       <button class="btn btn-gold" onclick="showScreen('stages')">⚔️ 出發冒險</button>
       <button class="btn btn-purple" onclick="showScreen('collection')">📖 角色圖鑑</button>
       <button class="btn btn-blue" onclick="showScreen('achievements')">🏆 成就</button>
+      <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
     </div>
   </div>
+</div>
+
+<!-- ═══════════════ 影片商店 ═══════════════ -->
+<div id="screen-shop" class="screen" style="justify-content:flex-start;padding-top:16px;gap:12px">
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:500px">
+    <h2 style="margin:0">💎 影片商店</h2>
+    <div style="font-size:18px;font-weight:bold;color:#64dfff">💎 <span id="shop-diamonds">0</span></div>
+  </div>
+  <div style="font-size:12px;color:#aaa;width:100%;max-width:500px">通關關卡獲得鑽石，解鎖限定影片</div>
+  <div id="shop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;width:100%;max-width:500px;overflow-y:auto;flex:1;padding-bottom:8px"></div>
+  <button class="btn btn-blue" onclick="showScreen('home')" style="flex-shrink:0">← 返回</button>
+</div>
+
+<!-- 影片播放浮層 -->
+<div id="video-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000d;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <video id="overlay-video" controls playsinline style="max-width:95vw;max-height:80dvh;border-radius:12px;background:#000"></video>
+  <button class="btn btn-blue" onclick="closeVideoOverlay()" style="max-width:160px">✕ 關閉</button>
 </div>
 
 <!-- ═══════════════ 成就通知浮窗 ═══════════════ -->
@@ -857,6 +892,8 @@ let gs = {
   perfectClears: 0,
   totalExpEarned: 0,
   kanaMistakes: {},
+  diamonds: 0,
+  unlockedVideos: {},
 };
 
 let game = {
@@ -1231,6 +1268,95 @@ function renderAchievements() {
 function setAchTab(cat) { achFilterCat = cat; renderAchievements(); }
 
 // ══════════════════════════════════════════
+//  💎 影片商店
+// ══════════════════════════════════════════
+const VIDEO_BASE_RGU = 'hotUpdate_decrypted/Video/RGU_HV/';
+const RGU_VIDEO_IDS = [
+  '001','002','003','004','005','006','007','008','009','010',
+  '011','012','013','014','015','016','017','018','019','020',
+  '021','022','023','024','025','026','027','028','029','030',
+  '031','032','033','034','035','036','037','038','039','040',
+  '041','042','043','044','045','046','047','048','049','050',
+  '051','052','053','060','061',
+];
+
+function getVideoPrice(vid) {
+  const n = parseInt(vid);
+  if (n <= 10) return 30;
+  if (n <= 30) return 50;
+  if (n <= 53) return 80;
+  return 100; // 060,061
+}
+
+function renderShop() {
+  document.getElementById('shop-diamonds').textContent = gs.diamonds || 0;
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = RGU_VIDEO_IDS.map(vid => {
+    const key = 'rgu_' + vid;
+    const unlocked = !!(gs.unlockedVideos && gs.unlockedVideos[key]);
+    const price = getVideoPrice(vid);
+    const src = VIDEO_BASE_RGU + 'RGU_HV_' + vid + '.mp4';
+    const canAfford = (gs.diamonds || 0) >= price;
+    if (unlocked) {
+      return `<div class="shop-video-card unlocked" onclick="playVideo('${src}')">
+        <div class="shop-video-thumb-wrap">
+          <video muted loop playsinline preload="metadata" src="${src}" style="width:100%;height:100%;object-fit:cover"></video>
+          <div class="play-icon">▶️</div>
+        </div>
+        <div class="shop-video-info">
+          <div class="shop-video-id">No.${vid}</div>
+          <div class="shop-video-owned">✅ 已解鎖</div>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="shop-video-card locked" onclick="buyVideo('${vid}')">
+        <div class="shop-video-thumb-wrap" style="background:#111;display:flex;align-items:center;justify-content:center">
+          <div style="font-size:36px">🔒</div>
+        </div>
+        <div class="shop-video-info">
+          <div class="shop-video-id">No.${vid}</div>
+          <div class="shop-video-price" style="color:${canAfford?'#64dfff':'#888'}">💎 ${price}</div>
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function buyVideo(vid) {
+  const key = 'rgu_' + vid;
+  if (gs.unlockedVideos && gs.unlockedVideos[key]) return;
+  const price = getVideoPrice(vid);
+  if ((gs.diamonds || 0) < price) {
+    showToast('💎 鑽石不足！繼續通關關卡獲得更多鑽石');
+    return;
+  }
+  // Confirm purchase
+  if (!confirm(`花費 💎${price} 鑽石解鎖影片 No.${vid}？\n目前持有：💎${gs.diamonds}`)) return;
+  gs.diamonds -= price;
+  if (!gs.unlockedVideos) gs.unlockedVideos = {};
+  gs.unlockedVideos[key] = true;
+  saveGame();
+  showToast(`🎉 影片 No.${vid} 已解鎖！`);
+  renderShop();
+}
+
+function playVideo(src) {
+  const overlay = document.getElementById('video-overlay');
+  const vid = document.getElementById('overlay-video');
+  vid.src = src;
+  vid.play();
+  overlay.style.display = 'flex';
+}
+
+function closeVideoOverlay() {
+  const overlay = document.getElementById('video-overlay');
+  const vid = document.getElementById('overlay-video');
+  vid.pause();
+  vid.src = '';
+  overlay.style.display = 'none';
+}
+
+// ══════════════════════════════════════════
 //  存檔系統
 // ══════════════════════════════════════════
 function saveGame() {
@@ -1247,6 +1373,8 @@ function loadGame() {
     if (!gs.perfectClears)   gs.perfectClears   = 0;
     if (!gs.totalExpEarned)  gs.totalExpEarned  = 0;
     if (!gs.kanaMistakes)    gs.kanaMistakes    = {};
+    if (!gs.diamonds)        gs.diamonds        = 0;
+    if (!gs.unlockedVideos)  gs.unlockedVideos  = {};
   } else {
     // 初始化
     CHARACTERS.forEach(c => {
@@ -1274,6 +1402,7 @@ function showScreen(name) {
   if (name === 'collection') renderCollection();
   if (name === 'stages') renderStages();
   if (name === 'achievements') renderAchievements();
+  if (name === 'shop') renderShop();
 }
 
 function showToast(msg, duration = 2000) {
@@ -1340,6 +1469,7 @@ function renderHome() {
   document.getElementById('stat-stages').textContent = Object.keys(gs.stageClears).length;
   document.getElementById('stat-chars').textContent = unlockedCount();
   document.getElementById('stat-matches').textContent = gs.totalMatches;
+  document.getElementById('stat-diamonds').textContent = gs.diamonds || 0;
 }
 
 // ══════════════════════════════════════════
@@ -1699,10 +1829,26 @@ function allRoundsComplete() {
 
   gs.totalClears = (gs.totalClears || 0) + 1;
   if (game.mistakes === 0) gs.perfectClears = (gs.perfectClears || 0) + 1;
+
+  // 💎 鑽石獎勵
+  const stage = STAGES.find(s=>s.id===game.stageId)||COMP_STAGES.find(s=>s.id===game.stageId)
+    ||(game.stageId==='boss'?BOSS_STAGE:null)||(game.stageId==='boss2'?BOSS2_STAGE:null)
+    ||(game.stageId==='daku'?DAKU_STAGE:null);
+  let diamondEarned = 0;
+  if (stage) {
+    if (stage.isBoss2) diamondEarned = 50;
+    else if (stage.isBoss) diamondEarned = 30;
+    else if (stage.isComp) diamondEarned = 15 + stars * 3;
+    else diamondEarned = 10 + stars * 3;
+  }
+  // 首通額外加倍
+  if (!prev) diamondEarned *= 2;
+  gs.diamonds = (gs.diamonds || 0) + diamondEarned;
+
   const { leveled, newLv } = addExp(gs.activeCharId, game.expGained);
   checkAchievements({ perfectClear: game.mistakes === 0, stageId: game.stageId });
   saveGame();
-  showResult(true, stars, leveled, newLv, newlyUnlocked);
+  showResult(true, stars, leveled, newLv, newlyUnlocked, diamondEarned);
 }
 
 function stageFailed() {
@@ -1732,7 +1878,7 @@ function addExp(charId, amount) {
 // ══════════════════════════════════════════
 //  結果畫面
 // ══════════════════════════════════════════
-function showResult(success, stars, leveled, newLv, newlyUnlocked) {
+function showResult(success, stars, leveled, newLv, newlyUnlocked, diamondEarned = 0) {
   const c = getChar(gs.activeCharId);
   const cs = getCharState(gs.activeCharId);
 
@@ -1746,6 +1892,7 @@ function showResult(success, stars, leveled, newLv, newlyUnlocked) {
     <div class="result-stat"><div class="result-stat-num">${game.matched}</div><div class="result-stat-label">配對成功</div></div>
     <div class="result-stat"><div class="result-stat-num">${game.mistakes}</div><div class="result-stat-label">失誤次數</div></div>
     <div class="result-stat"><div class="result-stat-num" style="color:#ce93d8">+${game.expGained}</div><div class="result-stat-label">EXP獲得</div></div>
+    ${success && diamondEarned > 0 ? `<div class="result-stat"><div class="result-stat-num" style="color:#64dfff">+${diamondEarned} 💎</div><div class="result-stat-label">鑽石獲得</div></div>` : ''}
     ${success ? `<div class="result-stat"><div class="result-stat-num">${starsHTML}</div><div class="result-stat-label">評分</div></div>` : ''}
   `;
 
