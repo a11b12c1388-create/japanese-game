@@ -1836,9 +1836,21 @@ function openShopPreview(vid) {
   video.load();
   video.play().catch(()=>{});
   overlay.style.display = 'flex';
+  // 5秒後暫停並顯示提示
+  clearTimeout(window._previewTimer);
+  window._previewTimer = setTimeout(() => {
+    video.pause();
+    const statusEl = document.getElementById('preview-status-text');
+    if (statusEl && _previewVid) {
+      const p = getVideoPrice(_previewVid);
+      const can = (gs.diamonds||0) >= p;
+      statusEl.innerHTML = `<span style="color:#ffd700">⏱️ 試看結束</span>　${can ? `💎 ${p} 即可解鎖完整版` : `需 💎 ${p}（持有 ${gs.diamonds}）`}`;
+    }
+  }, 5000);
 }
 
 function closeShopPreview() {
+  clearTimeout(window._previewTimer);
   const overlay = document.getElementById('shop-preview-overlay');
   const video = document.getElementById('preview-video');
   video.pause();
