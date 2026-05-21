@@ -1898,9 +1898,7 @@ function checkMatch() {
       game.combo++;
       game.matched++;
       gs.totalMatches++;
-      progressDailyQuest('match', 1);
       if (game.combo > gs.maxComboEver) gs.maxComboEver = game.combo;
-      progressDailyQuest('combo', game.combo);
       game.expGained += EXP_PER_CORRECT + Math.max(0, game.combo-1) * EXP_COMBO_BONUS;
       game.selectedKana = null;
       game.selectedRoma = null;
@@ -1912,6 +1910,9 @@ function checkMatch() {
         if (game.mistakes === 0) checkAchievements({ perfectRound: true });
         setTimeout(roundComplete, 400);
       }
+      // 每日任務進度（在回合切換排程後才呼叫，避免例外中斷流程）
+      try { progressDailyQuest('match', 1); } catch(e) {}
+      try { progressDailyQuest('combo', game.combo); } catch(e) {}
     }, 300);
   } else {
     setTimeout(() => {
@@ -1948,7 +1949,7 @@ function roundComplete() {
 
 function allRoundsComplete() {
   stopReviewTimer();
-  if (game.isReview) { progressDailyQuest('review', 1); showToast('🎉 複習完成！'); saveGame(); showResult(true, 3, false, 0, []); return; }
+  if (game.isReview) { try { progressDailyQuest('review', 1); } catch(e) {} showToast('🎉 複習完成！'); saveGame(); showResult(true, 3, false, 0, []); return; }
   const stars = game.mistakes === 0 ? 3 : game.mistakes <= 3 ? 2 : 1;
   const prev = gs.stageClears[game.stageId];
   gs.stageClears[game.stageId] = { stars: Math.max(stars, prev ? prev.stars : 0) };
@@ -1960,11 +1961,11 @@ function allRoundsComplete() {
   });
 
   gs.totalClears = (gs.totalClears || 0) + 1;
-  progressDailyQuest('clear', 1);
-  progressDailyQuest('stageid', game.stageId);
+  try { progressDailyQuest('clear', 1); } catch(e) {}
+  try { progressDailyQuest('stageid', game.stageId); } catch(e) {}
   if (game.mistakes === 0) {
     gs.perfectClears = (gs.perfectClears || 0) + 1;
-    progressDailyQuest('perfect', 1);
+    try { progressDailyQuest('perfect', 1); } catch(e) {}
   }
 
   // 💎 鑽石獎勵
@@ -2177,7 +2178,7 @@ function selectChallengeCard(i) {
     if (cg.answerCount === cg.wordChars.length) {
       // 全對！
       cg.score++; cg.streak++;
-      progressDailyQuest('chscore', cg.score);
+      try { progressDailyQuest('chscore', cg.score); } catch(e) {}
       if (cg.streak > cg.bestStreak) cg.bestStreak = cg.streak;
       document.querySelectorAll('.ch-box').forEach(b => b.classList.replace('filled','correct'));
       document.getElementById('ch-meaning').textContent = cg.word.m;
