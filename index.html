@@ -52,34 +52,51 @@
   .char-emoji { font-size: clamp(22px,6vw,28px); }
 
   /* ── 主頁 ── */
-  #screen-home { background: radial-gradient(ellipse at center,#1a1035 0%,#0f0c29 70%);
-    justify-content: flex-end; padding: 0; gap: 0; position: relative; overflow: hidden; }
+  #screen-home { background: #0f0c29; position: relative; overflow: hidden; padding: 0; gap: 0; justify-content: flex-start; }
 
   /* 立繪全版背景 */
   .home-char-bg { position: absolute; inset: 0; display: flex; justify-content: center; align-items: flex-end; pointer-events: none; }
-  .home-char-bg video, .home-char-bg img {
-    height: 100dvh; width: auto; max-width: 100%; object-fit: contain; object-position: bottom center; }
+  .home-char-bg video, .home-char-bg img { height: 100dvh; width: auto; max-width: 100%; object-fit: contain; object-position: bottom center; }
 
-  /* 底部資訊欄 */
-  .home-bottom { position: relative; z-index: 2; width: 100%;
-    background: linear-gradient(to top, #0f0c29ee 60%, transparent);
-    padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;
-    max-height: 100dvh; overflow-y: auto; scrollbar-width: none; }
-  .home-bottom::-webkit-scrollbar { display: none; }
+  /* 頂部資訊欄 */
+  .home-topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+    background: linear-gradient(to bottom, #000000bb 0%, transparent 100%);
+    padding: 12px 14px 28px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .home-topbar-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .home-topbar-name { font-size: 15px; font-weight: bold; text-shadow: 0 2px 8px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .home-topbar-lv { font-size: 11px; color: #ddd; }
+  .home-topbar-expwrap { width: 110px; background: #ffffff33; border-radius: 10px; height: 5px; overflow: hidden; margin-top: 2px; }
+  .home-topbar-expbar { height: 100%; background: linear-gradient(90deg,#f6d365,#fda085); border-radius: 10px; transition: width .5s; }
+  .home-topbar-title { font-size: 10px; color: #ffd700; margin-top: 2px; min-height: 14px; }
+  .home-topbar-aff { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+  .home-topbar-affwrap { width: 80px; background: #ffffff22; border-radius: 10px; height: 4px; overflow: hidden; }
+  .home-topbar-affbar { height: 100%; background: linear-gradient(90deg,#f093fb,#f5576c); border-radius: 10px; transition: width .5s; width: 0%; }
+  .home-topbar-afftext { font-size: 9px; color: #f093fb; white-space: nowrap; }
+  .home-topbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .home-diamond-box { background: #000000aa; border: 1px solid #64dfff55; border-radius: 20px; padding: 5px 12px; font-size: 14px; font-weight: bold; color: #64dfff; display: flex; align-items: center; gap: 4px; }
+  .home-stats-small { font-size: 10px; color: #aaa; text-align: right; line-height: 1.6; }
 
-  .home-char-banner { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 420px; }
-  .home-char-info { flex: 1; min-width: 0; }
-  .active-char-name { font-size: clamp(16px,4.5vw,20px); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 8px #000; }
-  .active-char-lv { font-size: 13px; color: #ccc; margin: 4px 0; }
-  .exp-bar-wrap { width: 100%; background: #333; border-radius: 10px; height: 8px; overflow: hidden; }
-  .exp-bar { height: 100%; background: linear-gradient(90deg,#f6d365,#fda085); border-radius: 10px; transition: width .6s; }
-  .exp-text { font-size: 10px; color: #888; margin-top: 3px; }
+  /* 左側功能按鈕 */
+  .home-side-left { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; gap: 8px; }
+  .home-side-btn { background: #000000bb; border: 1px solid #ffffff22; border-radius: 12px;
+    padding: 8px 5px; text-align: center; cursor: pointer; min-width: 50px; position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; touch-action: manipulation; }
+  .home-side-btn:active { background: #ffffff22; }
+  .home-side-icon { font-size: 20px; line-height: 1; }
+  .home-side-label { font-size: 9px; color: #ccc; white-space: nowrap; }
 
-  .stat-row { display: flex; gap: 10px; width: 100%; max-width: 420px; }
-  .stat-box { flex: 1; background: #ffffff18; backdrop-filter: blur(4px); border-radius: 10px; padding: 8px 4px; text-align: center; border: 1px solid #ffffff11; }
-  .stat-num { font-size: clamp(16px,4.5vw,20px); font-weight: bold; color: #f6d365; }
-  .stat-label { font-size: 10px; color: #aaa; }
-  .home-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; align-items: center; }
+  /* 底部導航列 */
+  .home-bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: linear-gradient(to top, #000000dd 50%, transparent 100%);
+    padding: 20px 4px 18px; display: flex; justify-content: space-around; align-items: flex-end; }
+  .home-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; touch-action: manipulation; flex: 1; position: relative;
+    padding: 6px 2px; border-radius: 12px; }
+  .home-nav-item:active { background: #ffffff18; }
+  .home-nav-icon { font-size: 24px; line-height: 1; }
+  .home-nav-label { font-size: 10px; color: #ddd; font-weight: 500; white-space: nowrap; }
+  .home-nav-badge { position: absolute; top: 2px; right: 6px; background: #e74c3c; color: #fff;
+    border-radius: 99px; padding: 1px 5px; font-size: 9px; font-weight: bold; line-height: 1.4; }
 
   /* ── 每日任務 ── */
   #screen-quests { background:#0f0c29; overflow-y:auto; }
@@ -407,42 +424,61 @@
 
 <!-- ═══════════════ 主頁 ═══════════════ -->
 <div id="screen-home" class="screen">
-  <!-- 全版立繪背景 -->
   <div class="home-char-bg" id="home-char-bg"></div>
-  <!-- 底部資訊 -->
-  <div class="home-bottom">
-    <div class="home-char-banner" id="home-char-card">
-      <div class="home-char-info">
-        <div class="active-char-name" id="home-char-name"></div>
-        <div class="active-char-lv" id="home-char-lv"></div>
-        <div class="exp-bar-wrap"><div class="exp-bar" id="home-exp-bar"></div></div>
-        <div class="exp-text" id="home-exp-text"></div>
-        <div id="home-title-display" style="font-size:11px;color:#ffd700;margin-top:2px"></div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          <div style="flex:1;background:#333;border-radius:10px;height:5px;overflow:hidden">
-            <div id="home-aff-bar" style="height:100%;background:linear-gradient(90deg,#f093fb,#f5576c);border-radius:10px;transition:width .5s;width:0%"></div>
-          </div>
-          <div id="home-aff-text" style="font-size:10px;color:#f093fb;white-space:nowrap">🤍 初識</div>
-        </div>
+  <!-- 頂部資訊欄 -->
+  <div class="home-topbar">
+    <div class="home-topbar-left">
+      <div class="home-topbar-name" id="home-char-name"></div>
+      <div class="home-topbar-lv" id="home-char-lv"></div>
+      <div class="home-topbar-expwrap"><div class="home-topbar-expbar" id="home-exp-bar"></div></div>
+      <div class="home-topbar-title" id="home-title-display"></div>
+      <div class="home-topbar-aff">
+        <div class="home-topbar-affwrap"><div class="home-topbar-affbar" id="home-aff-bar"></div></div>
+        <div class="home-topbar-afftext" id="home-aff-text">🤍 初識</div>
       </div>
     </div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="stat-num" id="stat-stages">0</div><div class="stat-label">通關關卡</div></div>
-      <div class="stat-box"><div class="stat-num" id="stat-chars">1</div><div class="stat-label">收集角色</div></div>
-      <div class="stat-box"><div class="stat-num" id="stat-matches">0</div><div class="stat-label">成功配對</div></div>
-      <div class="stat-box" style="border-color:#64dfff44"><div class="stat-num" id="stat-diamonds" style="color:#64dfff">0</div><div class="stat-label">💎 鑽石</div></div>
+    <div class="home-topbar-right">
+      <div class="home-diamond-box">💎 <span id="stat-diamonds">0</span></div>
+      <div class="home-stats-small">通關 <span id="stat-stages">0</span> 關｜角色 <span id="stat-chars">1</span></div>
     </div>
-    <div class="home-btns">
-      <button class="btn btn-gold" onclick="showScreen('stages')">⚔️ 出發冒險</button>
-      <button class="btn btn-purple" onclick="showScreen('collection')">📖 角色圖鑑</button>
-      <button class="btn btn-blue" onclick="showScreen('achievements')">🏆 成就</button>
-      <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('quests')">📅 每日任務 <span id="home-quest-badge" style="display:none;background:#e74c3c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">!</span></button>
-      <button class="btn" style="background:linear-gradient(135deg,#43e97b,#38f9d7);color:#333" onclick="showScreen('weekly')">📆 每週任務 <span id="home-weekly-badge" style="display:none;background:#e74c3c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">!</span></button>
-      <button class="btn" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff" onclick="showScreen('inventory')">🎒 背包 <span id="home-inv-badge" style="display:none;background:#fff;color:#f5576c;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px;font-weight:bold">0</span></button>
-      <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('titles')">🏅 稱號</button>
-      <button class="btn" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#333" onclick="showScreen('gacha')">🎰 時裝抽卡</button>
-      <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
-      <button class="btn" style="background:#c0392b;color:#fff;font-size:13px" onclick="if(!confirm('確定要刪除所有遊戲存檔嗎？此操作無法復原！'))return;localStorage.removeItem('hiragana_quest');location.reload();">🗑️ 刪除存檔</button>
+  </div>
+  <!-- 左側次要功能 -->
+  <div class="home-side-left">
+    <div class="home-side-btn" onclick="showScreen('achievements')">
+      <span class="home-side-icon">🏆</span><span class="home-side-label">成就</span>
+    </div>
+    <div class="home-side-btn" onclick="showScreen('titles')">
+      <span class="home-side-icon">🏅</span><span class="home-side-label">稱號</span>
+    </div>
+    <div class="home-side-btn" onclick="showScreen('shop')">
+      <span class="home-side-icon">🎬</span><span class="home-side-label">影片</span>
+    </div>
+    <div class="home-side-btn" onclick="if(!confirm('確定要刪除所有遊戲存檔嗎？此操作無法復原！'))return;localStorage.removeItem('hiragana_quest');location.reload();" style="border-color:#c0392b55">
+      <span class="home-side-icon">🗑️</span><span class="home-side-label" style="color:#e74c3c">刪除</span>
+    </div>
+  </div>
+  <!-- 底部主導航 -->
+  <div class="home-bottom-nav">
+    <div class="home-nav-item" onclick="showScreen('stages')">
+      <span class="home-nav-icon">⚔️</span><span class="home-nav-label">冒險</span>
+    </div>
+    <div class="home-nav-item" onclick="showScreen('collection')">
+      <span class="home-nav-icon">📖</span><span class="home-nav-label">圖鑑</span>
+    </div>
+    <div class="home-nav-item" onclick="showScreen('gacha')">
+      <span class="home-nav-icon">🎰</span><span class="home-nav-label">抽卡</span>
+    </div>
+    <div class="home-nav-item" onclick="showScreen('quests')">
+      <span class="home-nav-icon">📅</span><span class="home-nav-label">每日</span>
+      <span id="home-quest-badge" class="home-nav-badge" style="display:none">!</span>
+    </div>
+    <div class="home-nav-item" onclick="showScreen('weekly')">
+      <span class="home-nav-icon">📆</span><span class="home-nav-label">每週</span>
+      <span id="home-weekly-badge" class="home-nav-badge" style="display:none">!</span>
+    </div>
+    <div class="home-nav-item" onclick="showScreen('inventory')">
+      <span class="home-nav-icon">🎒</span><span class="home-nav-label">背包</span>
+      <span id="home-inv-badge" class="home-nav-badge" style="display:none">0</span>
     </div>
   </div>
 </div>
@@ -1754,17 +1790,13 @@ function startGame() {
 function renderHome() {
   const c = getChar(gs.activeCharId);
   const cs = getCharState(gs.activeCharId);
-  document.getElementById('home-char-card').className = `home-char-banner`;
   document.getElementById('home-char-bg').innerHTML = heroVideoTag(gs.activeCharId, cs.lv >= MAX_LEVEL, '', false);
   document.getElementById('home-char-name').innerHTML =
-    `<span class="el-${c.el}">${c.name}</span><br><span class="rarity-${c.rarity.toLowerCase()}">${c.rarity}</span>`;
+    `<span class="el-${c.el}">${c.name}</span> <span class="rarity-${c.rarity.toLowerCase()}">${c.rarity}</span>`;
   document.getElementById('home-char-lv').textContent = `LV. ${cs.lv}`;
   document.getElementById('home-exp-bar').style.width = expPercent(gs.activeCharId) + '%';
-  document.getElementById('home-exp-text').textContent =
-    cs.lv >= MAX_LEVEL ? 'MAX LEVEL' : `${cs.exp} / ${expForLevel(cs.lv)} EXP`;
   document.getElementById('stat-stages').textContent = Object.keys(gs.stageClears).length;
   document.getElementById('stat-chars').textContent = unlockedCount();
-  document.getElementById('stat-matches').textContent = gs.totalMatches;
   const dEl = document.getElementById('stat-diamonds');
   if (dEl) dEl.textContent = gs.diamonds || 0;
   // 稱號顯示
