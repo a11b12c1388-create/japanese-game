@@ -79,6 +79,18 @@
   .stat-label { font-size: 10px; color: #aaa; }
   .home-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; align-items: center; }
 
+  /* ── 每日任務 ── */
+  #screen-quests { background:#0f0c29; overflow-y:auto; }
+  .quest-item { display:flex;align-items:center;gap:12px;background:#ffffff0d;border:1px solid #ffffff18;border-radius:14px;padding:14px 16px;transition:opacity .3s; }
+  .quest-item.quest-done { opacity:.6;border-color:#81c78444; }
+  .quest-icon { font-size:28px;flex-shrink:0; }
+  .quest-body { flex:1;min-width:0;display:flex;flex-direction:column;gap:5px; }
+  .quest-desc { font-size:14px;font-weight:bold; }
+  .quest-bar-wrap { background:#333;border-radius:10px;height:7px;overflow:hidden; }
+  .quest-bar { height:100%;background:linear-gradient(90deg,#00b4db,#64dfff);border-radius:10px;transition:width .4s; }
+  .quest-progress { font-size:11px;color:#aaa; }
+  .quest-reward { font-size:15px;font-weight:bold;color:#64dfff;flex-shrink:0;white-space:nowrap; }
+
   /* ── 商店影片卡 ── */
   .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s; }
   .shop-video-card:active { transform:scale(.96); }
@@ -393,6 +405,7 @@
       <button class="btn btn-gold" onclick="showScreen('stages')">⚔️ 出發冒險</button>
       <button class="btn btn-purple" onclick="showScreen('collection')">📖 角色圖鑑</button>
       <button class="btn btn-blue" onclick="showScreen('achievements')">🏆 成就</button>
+      <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('quests')">📅 每日任務 <span id="home-quest-badge" style="display:none;background:#e74c3c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">!</span></button>
       <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
     </div>
   </div>
@@ -410,6 +423,17 @@
   <div style="font-size:12px;color:#aaa;width:100%;padding:8px 16px;flex-shrink:0">通關關卡獲得鑽石，解鎖限定影片</div>
   <!-- 影片網格（可捲動） -->
   <div id="shop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;width:100%;padding:0 16px 24px;overflow-y:auto;flex:1"></div>
+</div>
+
+<!-- ═══════════════ 每日任務 ═══════════════ -->
+<div id="screen-quests" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">📅 每日任務</h2>
+    <div style="font-size:16px;font-weight:bold;color:#64dfff;flex-shrink:0">💎 <span id="quest-diamonds">0</span></div>
+  </div>
+  <div style="padding:12px 16px 4px;color:#aaa;font-size:13px;flex-shrink:0" id="quest-summary">今日完成 0 / 3</div>
+  <div id="quest-list" style="display:flex;flex-direction:column;gap:12px;padding:8px 16px 24px;width:100%;overflow-y:auto;flex:1"></div>
 </div>
 
 <!-- 影片播放浮層 -->
@@ -897,6 +921,7 @@ let gs = {
   kanaMistakes: {},
   diamonds: 0,
   unlockedVideos: {},
+  dailyQuests: null,   // { date, quests:[{id,progress,done}] }
 };
 
 let game = {
@@ -1268,6 +1293,101 @@ function renderAchievements() {
 function setAchTab(cat) { achFilterCat = cat; renderAchievements(); }
 
 // ══════════════════════════════════════════
+//  📅 每日任務
+// ══════════════════════════════════════════
+const QUEST_POOL = [
+  { id:'q_match10',   desc:'配對成功 10 次',    type:'match',   target:10,  reward:15 },
+  { id:'q_match30',   desc:'配對成功 30 次',    type:'match',   target:30,  reward:30 },
+  { id:'q_match50',   desc:'配對成功 50 次',    type:'match',   target:50,  reward:50 },
+  { id:'q_clear1',    desc:'通關任意關卡 1 次', type:'clear',   target:1,   reward:20 },
+  { id:'q_clear3',    desc:'通關任意關卡 3 次', type:'clear',   target:3,   reward:45 },
+  { id:'q_clear5',    desc:'通關任意關卡 5 次', type:'clear',   target:5,   reward:70 },
+  { id:'q_perfect1',  desc:'零失誤通關 1 次',  type:'perfect', target:1,   reward:35 },
+  { id:'q_perfect3',  desc:'零失誤通關 3 次',  type:'perfect', target:3,   reward:80 },
+  { id:'q_combo10',   desc:'達成 10 連擊',     type:'combo',   target:10,  reward:25 },
+  { id:'q_combo20',   desc:'達成 20 連擊',     type:'combo',   target:20,  reward:50 },
+  { id:'q_review1',   desc:'完成複習關 1 次',  type:'review',  target:1,   reward:20 },
+  { id:'q_challenge1',desc:'挑戰關得分 50+',   type:'chscore', target:50,  reward:30 },
+  { id:'q_challenge2',desc:'挑戰關得分 100+',  type:'chscore', target:100, reward:60 },
+  { id:'q_daku1',     desc:'通關濁音關卡 1 次',type:'stageid', target:'daku', reward:25 },
+  { id:'q_boss1',     desc:'挑戰魔王關 1 次',  type:'stageid', target:'boss', reward:40 },
+];
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+}
+
+function ensureDailyQuests() {
+  const today = todayStr();
+  if (gs.dailyQuests && gs.dailyQuests.date === today) return;
+  // 每天隨機抽 3 個任務（難易混合）
+  const easy   = QUEST_POOL.filter(q => q.reward <= 25);
+  const medium = QUEST_POOL.filter(q => q.reward > 25 && q.reward <= 50);
+  const hard   = QUEST_POOL.filter(q => q.reward > 50);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const chosen = [pick(easy), pick(medium), pick(hard)];
+  gs.dailyQuests = {
+    date: today,
+    quests: chosen.map(q => ({ id: q.id, progress: 0, done: false })),
+  };
+  saveGame();
+}
+
+function getDailyQuestDef(id) { return QUEST_POOL.find(q => q.id === id); }
+
+function progressDailyQuest(type, value = 1) {
+  ensureDailyQuests();
+  let changed = false;
+  gs.dailyQuests.quests.forEach(qst => {
+    if (qst.done) return;
+    const def = getDailyQuestDef(qst.id);
+    if (!def || def.type !== type) return;
+    if (type === 'stageid') {
+      if (def.target === value) { qst.progress = 1; }
+    } else if (type === 'combo' || type === 'chscore') {
+      if (value >= def.target) { qst.progress = def.target; }
+    } else {
+      qst.progress = Math.min(qst.progress + value, def.target);
+    }
+    if (!qst.done && qst.progress >= def.target) {
+      qst.done = true;
+      gs.diamonds = (gs.diamonds || 0) + def.reward;
+      changed = true;
+      showToast(`📅 每日任務完成！+${def.reward} 💎`);
+    }
+  });
+  if (changed) { saveGame(); if (document.getElementById('screen-quests')?.classList.contains('active')) renderQuests(); }
+}
+
+function renderQuests() {
+  ensureDailyQuests();
+  const dEl = document.getElementById('quest-diamonds');
+  if (dEl) dEl.textContent = gs.diamonds || 0;
+  const list = document.getElementById('quest-list');
+  if (!list) return;
+  const done = gs.dailyQuests.quests.filter(q => q.done).length;
+  document.getElementById('quest-summary').textContent = `今日完成 ${done} / 3`;
+  list.innerHTML = gs.dailyQuests.quests.map(qst => {
+    const def = getDailyQuestDef(qst.id);
+    if (!def) return '';
+    const pct = def.type === 'stageid' || def.type === 'combo' || def.type === 'chscore'
+      ? (qst.done ? 100 : 0)
+      : Math.round(qst.progress / def.target * 100);
+    return `<div class="quest-item ${qst.done ? 'quest-done' : ''}">
+      <div class="quest-icon">${qst.done ? '✅' : '📋'}</div>
+      <div class="quest-body">
+        <div class="quest-desc">${def.desc}</div>
+        <div class="quest-bar-wrap"><div class="quest-bar" style="width:${pct}%"></div></div>
+        <div class="quest-progress">${def.type === 'stageid' || def.type === 'combo' || def.type === 'chscore'
+          ? (qst.done ? '已完成' : '未完成')
+          : `${qst.progress} / ${def.target}`}</div>
+      </div>
+      <div class="quest-reward">+${def.reward} 💎</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
 //  💎 影片商店
 // ══════════════════════════════════════════
 const VIDEO_BASE_RGU = 'hotUpdate_decrypted/Video/RGU_HV/';
@@ -1375,6 +1495,7 @@ function loadGame() {
     if (!gs.kanaMistakes)    gs.kanaMistakes    = {};
     if (!gs.diamonds)        gs.diamonds        = 0;
     if (!gs.unlockedVideos)  gs.unlockedVideos  = {};
+    if (!gs.dailyQuests)     gs.dailyQuests     = null;
   } else {
     // 初始化
     CHARACTERS.forEach(c => {
@@ -1403,6 +1524,7 @@ function showScreen(name) {
   if (name === 'stages') renderStages();
   if (name === 'achievements') renderAchievements();
   if (name === 'shop') renderShop();
+  if (name === 'quests') renderQuests();
 }
 
 function showToast(msg, duration = 2000) {
@@ -1471,6 +1593,13 @@ function renderHome() {
   document.getElementById('stat-matches').textContent = gs.totalMatches;
   const dEl = document.getElementById('stat-diamonds');
   if (dEl) dEl.textContent = gs.diamonds || 0;
+  // 每日任務角標：有未完成任務就顯示紅點
+  ensureDailyQuests();
+  const badge = document.getElementById('home-quest-badge');
+  if (badge) {
+    const hasUndone = gs.dailyQuests.quests.some(q => !q.done);
+    badge.style.display = hasUndone ? 'inline' : 'none';
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1769,7 +1898,9 @@ function checkMatch() {
       game.combo++;
       game.matched++;
       gs.totalMatches++;
+      progressDailyQuest('match', 1);
       if (game.combo > gs.maxComboEver) gs.maxComboEver = game.combo;
+      progressDailyQuest('combo', game.combo);
       game.expGained += EXP_PER_CORRECT + Math.max(0, game.combo-1) * EXP_COMBO_BONUS;
       game.selectedKana = null;
       game.selectedRoma = null;
@@ -1817,7 +1948,7 @@ function roundComplete() {
 
 function allRoundsComplete() {
   stopReviewTimer();
-  if (game.isReview) { showToast('🎉 複習完成！'); saveGame(); showResult(true, 3, false, 0, []); return; }
+  if (game.isReview) { progressDailyQuest('review', 1); showToast('🎉 複習完成！'); saveGame(); showResult(true, 3, false, 0, []); return; }
   const stars = game.mistakes === 0 ? 3 : game.mistakes <= 3 ? 2 : 1;
   const prev = gs.stageClears[game.stageId];
   gs.stageClears[game.stageId] = { stars: Math.max(stars, prev ? prev.stars : 0) };
@@ -1829,7 +1960,12 @@ function allRoundsComplete() {
   });
 
   gs.totalClears = (gs.totalClears || 0) + 1;
-  if (game.mistakes === 0) gs.perfectClears = (gs.perfectClears || 0) + 1;
+  progressDailyQuest('clear', 1);
+  progressDailyQuest('stageid', game.stageId);
+  if (game.mistakes === 0) {
+    gs.perfectClears = (gs.perfectClears || 0) + 1;
+    progressDailyQuest('perfect', 1);
+  }
 
   // 💎 鑽石獎勵
   const stage = STAGES.find(s=>s.id===game.stageId)||COMP_STAGES.find(s=>s.id===game.stageId)
@@ -2041,6 +2177,7 @@ function selectChallengeCard(i) {
     if (cg.answerCount === cg.wordChars.length) {
       // 全對！
       cg.score++; cg.streak++;
+      progressDailyQuest('chscore', cg.score);
       if (cg.streak > cg.bestStreak) cg.bestStreak = cg.streak;
       document.querySelectorAll('.ch-box').forEach(b => b.classList.replace('filled','correct'));
       document.getElementById('ch-meaning').textContent = cg.word.m;
