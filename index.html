@@ -691,6 +691,16 @@
     <div id="daku-grid" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"></div>
   </div>
 
+  <!-- 拗音關 -->
+  <div id="youon-section" style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <div style="flex:1;height:1px;background:#333"></div>
+      <span style="font-size:13px;color:#f6d365;font-weight:bold;white-space:nowrap">🔀 拗音</span>
+      <div style="flex:1;height:1px;background:#333"></div>
+    </div>
+    <div id="youon-grid" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"></div>
+  </div>
+
   <!-- 挑戰關 -->
   <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px;gap:8px">
     <div style="display:flex;align-items:center;gap:8px;width:100%">
@@ -1095,6 +1105,24 @@ const DAKU_STAGE = {
     {h:'だ',k:'ダ',r:'da'}, {h:'ぢ',k:'ヂ',r:'di'}, {h:'づ',k:'ヅ',r:'du'}, {h:'で',k:'デ',r:'de'}, {h:'ど',k:'ド',r:'do'},
     {h:'ば',k:'バ',r:'ba'}, {h:'び',k:'ビ',r:'bi'}, {h:'ぶ',k:'ブ',r:'bu'}, {h:'べ',k:'ベ',r:'be'}, {h:'ぼ',k:'ボ',r:'bo'},
     {h:'ぱ',k:'パ',r:'pa'}, {h:'ぴ',k:'ピ',r:'pi'}, {h:'ぷ',k:'プ',r:'pu'}, {h:'ぺ',k:'ペ',r:'pe'}, {h:'ぽ',k:'ポ',r:'po'},
+  ],
+};
+
+// 拗音關
+const YOUON_STAGE = {
+  id:'youon', name:'拗音', label:'きゃ・しゃ・ちゃ…行', icon:'きゃ',
+  kana:[
+    {h:'きゃ',r:'kya'}, {h:'きゅ',r:'kyu'}, {h:'きょ',r:'kyo'},
+    {h:'しゃ',r:'sha'}, {h:'しゅ',r:'shu'}, {h:'しょ',r:'sho'},
+    {h:'ちゃ',r:'cha'}, {h:'ちゅ',r:'chu'}, {h:'ちょ',r:'cho'},
+    {h:'にゃ',r:'nya'}, {h:'にゅ',r:'nyu'}, {h:'にょ',r:'nyo'},
+    {h:'ひゃ',r:'hya'}, {h:'ひゅ',r:'hyu'}, {h:'ひょ',r:'hyo'},
+    {h:'みゃ',r:'mya'}, {h:'みゅ',r:'myu'}, {h:'みょ',r:'myo'},
+    {h:'りゃ',r:'rya'}, {h:'りゅ',r:'ryu'}, {h:'りょ',r:'ryo'},
+    {h:'ぎゃ',r:'gya'}, {h:'ぎゅ',r:'gyu'}, {h:'ぎょ',r:'gyo'},
+    {h:'じゃ',r:'ja'},  {h:'じゅ',r:'ju'},  {h:'じょ',r:'jo'},
+    {h:'びゃ',r:'bya'}, {h:'びゅ',r:'byu'}, {h:'びょ',r:'byo'},
+    {h:'ぴゃ',r:'pya'}, {h:'ぴゅ',r:'pyu'}, {h:'ぴょ',r:'pyo'},
   ],
 };
 
@@ -1633,8 +1661,9 @@ const QUEST_POOL = [
   { id:'q_review1',   desc:'完成複習關 1 次',  type:'review',  target:1,   reward:50 },
   { id:'q_challenge1',desc:'挑戰關得分 50+',   type:'chscore', target:50,  reward:80 },
   { id:'q_challenge2',desc:'挑戰關得分 100+',  type:'chscore', target:100, reward:160 },
-  { id:'q_daku1',     desc:'通關濁音關卡 1 次',type:'stageid', target:'daku', reward:60 },
-  { id:'q_boss1',     desc:'挑戰魔王關 1 次',  type:'stageid', target:'boss', reward:100 },
+  { id:'q_daku1',     desc:'通關濁音關卡 1 次',type:'stageid', target:'daku',  reward:60 },
+  { id:'q_youon1',    desc:'通關拗音關卡 1 次',type:'stageid', target:'youon', reward:70 },
+  { id:'q_boss1',     desc:'挑戰魔王關 1 次',  type:'stageid', target:'boss',  reward:100 },
 ];
 
 function todayStr() {
@@ -2183,6 +2212,24 @@ function renderStages() {
       <div class="stage-stars">${dakuStars}</div>
     </div>`;
 
+  // 拗音關（通關濁音後解鎖）
+  const youonCleared = gs.stageClears['youon'];
+  const youonUnlocked = !!gs.stageClears['daku'];
+  const youonStars = youonCleared ? '⭐'.repeat(youonCleared.stars) + '☆'.repeat(3-youonCleared.stars) : '☆☆☆';
+  document.getElementById('youon-grid').innerHTML = youonUnlocked
+    ? `<div class="stage-btn ${youonCleared?'completed':''}" onclick="enterStage('youon')"
+        style="border-color:#f6d365;background:linear-gradient(135deg,#201500,#120a00)">
+        <div class="stage-hira" style="font-size:20px">きゃ</div>
+        <div class="stage-name" style="color:#f6d365">拗音</div>
+        <div style="font-size:9px;color:#aaa">きゃ・しゃ・ちゃ… 全33字</div>
+        <div class="stage-stars">${youonStars}</div>
+      </div>`
+    : `<div class="stage-btn" style="opacity:.45;pointer-events:none;border-color:#555">
+        <div class="stage-hira" style="font-size:20px">🔒</div>
+        <div class="stage-name" style="color:#888">拗音</div>
+        <div style="font-size:9px;color:#666">通關濁音後解鎖</div>
+      </div>`;
+
   renderReviewSection();
 }
 
@@ -2190,7 +2237,7 @@ function renderStages() {
 //  遊戲邏輯
 // ══════════════════════════════════════════
 function enterStage(stageId) {
-  const stage = STAGES.find(s => s.id === stageId) || COMP_STAGES.find(s => s.id === stageId) || (stageId === 'boss' ? BOSS_STAGE : null) || (stageId === 'boss2' ? BOSS2_STAGE : null) || (stageId === 'daku' ? DAKU_STAGE : null);
+  const stage = STAGES.find(s => s.id === stageId) || COMP_STAGES.find(s => s.id === stageId) || (stageId === 'boss' ? BOSS_STAGE : null) || (stageId === 'boss2' ? BOSS2_STAGE : null) || (stageId === 'daku' ? DAKU_STAGE : null) || (stageId === 'youon' ? YOUON_STAGE : null);
   const rounds = buildRounds(stage);
   game = {
     stageId, stage, rounds, roundIdx: 0,
@@ -2399,7 +2446,7 @@ function allRoundsComplete() {
   // 💎 鑽石獎勵
   const stage = STAGES.find(s=>s.id===game.stageId)||COMP_STAGES.find(s=>s.id===game.stageId)
     ||(game.stageId==='boss'?BOSS_STAGE:null)||(game.stageId==='boss2'?BOSS2_STAGE:null)
-    ||(game.stageId==='daku'?DAKU_STAGE:null);
+    ||(game.stageId==='daku'?DAKU_STAGE:null)||(game.stageId==='youon'?YOUON_STAGE:null);
   let diamondEarned = 0;
   if (stage) {
     if (stage.isBoss2) diamondEarned = 120;
@@ -3219,7 +3266,19 @@ const ENDLESS_KANA_POOL = (() => {
     {h:'ば',r:'ba'},{h:'び',r:'bi'},{h:'ぶ',r:'bu'},{h:'べ',r:'be'},{h:'ぼ',r:'bo'},
     {h:'ぱ',r:'pa'},{h:'ぴ',r:'pi'},{h:'ぷ',r:'pu'},{h:'ぺ',r:'pe'},{h:'ぽ',r:'po'},
   ];
-  return [...base, ...daku];
+  const youon = [
+    {h:'きゃ',r:'kya'},{h:'きゅ',r:'kyu'},{h:'きょ',r:'kyo'},
+    {h:'しゃ',r:'sha'},{h:'しゅ',r:'shu'},{h:'しょ',r:'sho'},
+    {h:'ちゃ',r:'cha'},{h:'ちゅ',r:'chu'},{h:'ちょ',r:'cho'},
+    {h:'にゃ',r:'nya'},{h:'にゅ',r:'nyu'},{h:'にょ',r:'nyo'},
+    {h:'みゃ',r:'mya'},{h:'みょ',r:'myo'},
+    {h:'りゃ',r:'rya'},{h:'りゅ',r:'ryu'},{h:'りょ',r:'ryo'},
+    {h:'ぎゃ',r:'gya'},{h:'ぎゅ',r:'gyu'},{h:'ぎょ',r:'gyo'},
+    {h:'じゃ',r:'ja'}, {h:'じゅ',r:'ju'}, {h:'じょ',r:'jo'},
+    {h:'びゃ',r:'bya'},{h:'びょ',r:'byo'},
+    {h:'ぴゃ',r:'pya'},{h:'ぴょ',r:'pyo'},
+  ];
+  return [...base, ...daku, ...youon];
 })();
 
 let endless = { score:0, combo:0, multiplier:1, running:false, currentKana:null };
@@ -3342,6 +3401,7 @@ const TITLE_LIST = [
   { id:'t_login7',    name:'每日勤練者', icon:'🗓️', cond:'連續登入7天',    check:()=>(gs.loginStreak?.streak||0)>=7 },
   { id:'t_login30',   name:'常駐修行者', icon:'🔥', cond:'連續登入30天',   check:()=>(gs.loginStreak?.streak||0)>=30 },
   { id:'t_daku',      name:'濁音征服者', icon:'が', cond:'通關濁音關',      check:()=>!!gs.stageClears['daku'] },
+  { id:'t_youon',     name:'拗音達人',  icon:'きゃ', cond:'通關拗音關',    check:()=>!!gs.stageClears['youon'] },
   { id:'t_match500',  name:'配對狂人',  icon:'✨', cond:'累計配對500次',   check:()=>(gs.totalMatches||0)>=500 },
 ];
 
