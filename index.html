@@ -148,6 +148,7 @@
 
   /* ── 關卡選擇 ── */
   #screen-stages { background: #0f0c29; justify-content: flex-start; padding-top: 20px; overflow-y: auto; }
+  #screen-shop { background: #0f0c29; overflow-y: auto; }
   .stage-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
     width: 100%; max-width: 360px; margin: 16px 0; }
   .stage-grid .stage-btn:last-child:nth-child(3n-1) { grid-column: 2; }
@@ -398,14 +399,17 @@
 </div>
 
 <!-- ═══════════════ 影片商店 ═══════════════ -->
-<div id="screen-shop" class="screen" style="justify-content:flex-start;padding-top:16px;gap:12px">
-  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:500px">
-    <h2 style="margin:0">💎 影片商店</h2>
-    <div style="font-size:18px;font-weight:bold;color:#64dfff">💎 <span id="shop-diamonds">0</span></div>
+<div id="screen-shop" class="screen" style="justify-content:flex-start;padding:0;gap:0">
+  <!-- 固定頂欄 -->
+  <div style="position:sticky;top:0;z-index:10;width:100%;background:linear-gradient(135deg,#1a1035,#0f0c29);border-bottom:1px solid #ffffff18;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button class="btn btn-blue" onclick="showScreen('home')" style="min-height:38px;padding:6px 16px;width:auto;flex-shrink:0;font-size:14px">← 返回</button>
+    <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">💎 影片商店</h2>
+    <div style="font-size:16px;font-weight:bold;color:#64dfff;flex-shrink:0">💎 <span id="shop-diamonds">0</span></div>
   </div>
-  <div style="font-size:12px;color:#aaa;width:100%;max-width:500px">通關關卡獲得鑽石，解鎖限定影片</div>
-  <div id="shop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;width:100%;max-width:500px;overflow-y:auto;flex:1;padding-bottom:8px"></div>
-  <button class="btn btn-blue" onclick="showScreen('home')" style="flex-shrink:0">← 返回</button>
+  <!-- 說明 -->
+  <div style="font-size:12px;color:#aaa;width:100%;padding:8px 16px;flex-shrink:0">通關關卡獲得鑽石，解鎖限定影片</div>
+  <!-- 影片網格（可捲動） -->
+  <div id="shop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;width:100%;padding:0 16px 24px;overflow-y:auto;flex:1"></div>
 </div>
 
 <!-- 影片播放浮層 -->
