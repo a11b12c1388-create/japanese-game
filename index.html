@@ -713,9 +713,8 @@ function heroVideoTag(id, isMax, cls, locked) {
   const src = heroVideoPath(id, isMax, suffix);
   const imgSrc = heroImgPath(id, isMax, suffix);
   const lockedCls = locked ? ' char-img-locked' : '';
-  return `<video class="char-img ${cls}${lockedCls}" autoplay loop muted playsinline disablepictureinpicture
+  return `<video class="char-img ${cls}${lockedCls}" autoplay loop muted playsinline disablepictureinpicture src="${src}"
     onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-    <source src="${src}" type="video/mp4">
   </video><img src="${imgSrc}" class="char-img ${cls}${lockedCls}" alt="" style="display:none" onerror="this.style.display='none'">`;
 }
 
@@ -1469,7 +1468,8 @@ function renderHome() {
   document.getElementById('stat-stages').textContent = Object.keys(gs.stageClears).length;
   document.getElementById('stat-chars').textContent = unlockedCount();
   document.getElementById('stat-matches').textContent = gs.totalMatches;
-  document.getElementById('stat-diamonds').textContent = gs.diamonds || 0;
+  const dEl = document.getElementById('stat-diamonds');
+  if (dEl) dEl.textContent = gs.diamonds || 0;
 }
 
 // ══════════════════════════════════════════
