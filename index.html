@@ -440,8 +440,7 @@
       <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('titles')">🏅 稱號</button>
       <button class="btn" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#333" onclick="showScreen('gacha')">🎰 時裝抽卡</button>
       <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
-      <button id="debug-diamonds-btn" class="btn" style="background:#333;color:#ffd700;font-size:12px;opacity:0.6" onclick="gs.diamonds=(gs.diamonds||0)+10000;saveGame();renderHome();this.textContent='✅ 已給予';this.disabled=true">🛠 測試 +10000💎</button>
-      <button class="btn" style="background:#333;color:#f48fb1;font-size:12px;opacity:0.6" onclick="if(!confirm('移除所有可抽時裝？'))return;CHARACTERS.forEach(c=>{if(c.rarity!=='SSR')return;(COSTUMES[c.id]||[]).forEach(co=>{delete gs.costumes[co.id];});});saveGame();showToast('已移除所有可抽時裝');">🛠 重置抽卡時裝</button>
+      <button class="btn" style="background:#c0392b;color:#fff;font-size:13px" onclick="if(!confirm('確定要刪除所有遊戲存檔嗎？此操作無法復原！'))return;localStorage.removeItem('hiragana_quest');location.reload();">🗑️ 刪除存檔</button>
     </div>
   </div>
 </div>
