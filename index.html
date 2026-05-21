@@ -445,6 +445,16 @@
     <div class="comp-grid" id="comp-grid"></div>
   </div>
 
+  <!-- 濁音・半濁音關 -->
+  <div id="daku-section" style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <div style="flex:1;height:1px;background:#333"></div>
+      <span style="font-size:13px;color:#81c784;font-weight:bold;white-space:nowrap">🔤 濁音・半濁音</span>
+      <div style="flex:1;height:1px;background:#333"></div>
+    </div>
+    <div id="daku-grid" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"></div>
+  </div>
+
   <!-- 挑戰關 -->
   <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:16px;gap:8px">
     <div style="display:flex;align-items:center;gap:8px;width:100%">
@@ -596,39 +606,39 @@ const VIDEO_BASE = 'hotUpdate_decrypted/Video/Hero/';
 // 時裝系列名稱對應（suffix → 系列名）
 const COSTUME_SERIES = {
   '101':'薄紅透瑞', '102':'禁忌織夢', '103':'濕身之秀', '104':'片刻歡愉',
-  '105':'暗夜蝶舞',   '106':'午夜私語', '107':'幻夢曇花', '108':'成名的代價',
+  '105':'暗夜蝶舞',   '106':'午夜私語', '107':'幻夢曇花', '108':'成名的代價', '109':'如夢似幻',
 };
 // 時裝資料（僅含靜態+動態皆存在、且非 000/010 的檔案）
 const COSTUMES = {
-  1:  [ {id:'c01101',name:'薄紅透瑞',  suffix:'101'},{id:'c01102',name:'禁忌織夢',  suffix:'102'},{id:'c01103',name:'濕身之秀',  suffix:'103'},{id:'c01104',name:'片刻歡愉',  suffix:'104'},{id:'c01106',name:'午夜私語',  suffix:'106'},{id:'c01108',name:'成名的代價',suffix:'108'} ],
-  2:  [ {id:'c02101',name:'薄紅透瑞',  suffix:'101'},{id:'c02102',name:'禁忌織夢',  suffix:'102'},{id:'c02103',name:'濕身之秀',  suffix:'103'},{id:'c02104',name:'片刻歡愉',  suffix:'104'},{id:'c02106',name:'午夜私語',  suffix:'106'} ],
-  3:  [ {id:'c03101',name:'薄紅透瑞',  suffix:'101'},{id:'c03105',name:'即興發揮',    suffix:'105'},{id:'c03106',name:'午夜私語',  suffix:'106'},{id:'c03107',name:'幻夢曇花',  suffix:'107'} ],
-  4:  [ {id:'c04101',name:'薄紅透瑞',  suffix:'101'},{id:'c04104',name:'片刻歡愉',  suffix:'104'},{id:'c04105',name:'即興發揮',    suffix:'105'},{id:'c04106',name:'午夜私語',  suffix:'106'},{id:'c04108',name:'成名的代價',suffix:'108'} ],
-  5:  [ {id:'c05101',name:'薄紅透瑞',  suffix:'101'},{id:'c05102',name:'禁忌織夢',  suffix:'102'},{id:'c05103',name:'濕身之秀',  suffix:'103'},{id:'c05104',name:'片刻歡愉',  suffix:'104'},{id:'c05106',name:'午夜私語',  suffix:'106'},{id:'c05108',name:'成名的代價',suffix:'108'} ],
-  6:  [ {id:'c06101',name:'薄紅透瑞',  suffix:'101'},{id:'c06106',name:'午夜私語',  suffix:'106'} ],
-  7:  [ {id:'c07101',name:'薄紅透瑞',  suffix:'101'},{id:'c07102',name:'禁忌織夢',  suffix:'102'},{id:'c07103',name:'濕身之秀',  suffix:'103'},{id:'c07104',name:'片刻歡愉',  suffix:'104'},{id:'c07106',name:'午夜私語',  suffix:'106'},{id:'c07108',name:'成名的代價',suffix:'108'} ],
-  8:  [ {id:'c08101',name:'薄紅透瑞',  suffix:'101'},{id:'c08102',name:'禁忌織夢',  suffix:'102'},{id:'c08103',name:'濕身之秀',  suffix:'103'},{id:'c08104',name:'片刻歡愉',  suffix:'104'},{id:'c08106',name:'午夜私語',  suffix:'106'} ],
+  1:  [ {id:'c01101',name:'薄紅透瑞',  suffix:'101'},{id:'c01102',name:'禁忌織夢',  suffix:'102'},{id:'c01103',name:'濕身之秀',  suffix:'103'},{id:'c01104',name:'片刻歡愉',  suffix:'104'},{id:'c01106',name:'午夜私語',  suffix:'106'},{id:'c01108',name:'成名的代價',suffix:'108'},{id:'c01109',name:'如夢似幻',  suffix:'109'} ],
+  2:  [ {id:'c02101',name:'薄紅透瑞',  suffix:'101'},{id:'c02102',name:'禁忌織夢',  suffix:'102'},{id:'c02103',name:'濕身之秀',  suffix:'103'},{id:'c02104',name:'片刻歡愉',  suffix:'104'},{id:'c02106',name:'午夜私語',  suffix:'106'},{id:'c02108',name:'成名的代價',suffix:'108'},{id:'c02109',name:'如夢似幻',  suffix:'109'} ],
+  3:  [ {id:'c03101',name:'薄紅透瑞',  suffix:'101'},{id:'c03105',name:'即興發揮',  suffix:'105'},{id:'c03106',name:'午夜私語',  suffix:'106'},{id:'c03107',name:'幻夢曇花',  suffix:'107'},{id:'c03108',name:'成名的代價',suffix:'108'},{id:'c03109',name:'如夢似幻',  suffix:'109'} ],
+  4:  [ {id:'c04101',name:'薄紅透瑞',  suffix:'101'},{id:'c04104',name:'片刻歡愉',  suffix:'104'},{id:'c04105',name:'即興發揮',  suffix:'105'},{id:'c04106',name:'午夜私語',  suffix:'106'},{id:'c04108',name:'成名的代價',suffix:'108'},{id:'c04109',name:'如夢似幻',  suffix:'109'} ],
+  5:  [ {id:'c05101',name:'薄紅透瑞',  suffix:'101'},{id:'c05102',name:'禁忌織夢',  suffix:'102'},{id:'c05103',name:'濕身之秀',  suffix:'103'},{id:'c05104',name:'片刻歡愉',  suffix:'104'},{id:'c05106',name:'午夜私語',  suffix:'106'},{id:'c05108',name:'成名的代價',suffix:'108'},{id:'c05109',name:'如夢似幻',  suffix:'109'} ],
+  6:  [ {id:'c06101',name:'薄紅透瑞',  suffix:'101'},{id:'c06106',name:'午夜私語',  suffix:'106'},{id:'c06108',name:'成名的代價',suffix:'108'},{id:'c06109',name:'如夢似幻',  suffix:'109'} ],
+  7:  [ {id:'c07101',name:'薄紅透瑞',  suffix:'101'},{id:'c07102',name:'禁忌織夢',  suffix:'102'},{id:'c07103',name:'濕身之秀',  suffix:'103'},{id:'c07104',name:'片刻歡愉',  suffix:'104'},{id:'c07106',name:'午夜私語',  suffix:'106'},{id:'c07108',name:'成名的代價',suffix:'108'},{id:'c07109',name:'如夢似幻',  suffix:'109'} ],
+  8:  [ {id:'c08101',name:'薄紅透瑞',  suffix:'101'},{id:'c08102',name:'禁忌織夢',  suffix:'102'},{id:'c08103',name:'濕身之秀',  suffix:'103'},{id:'c08104',name:'片刻歡愉',  suffix:'104'},{id:'c08106',name:'午夜私語',  suffix:'106'},{id:'c08108',name:'成名的代價',suffix:'108'},{id:'c08109',name:'如夢似幻',  suffix:'109'} ],
   9:  [ {id:'c09101',name:'薄紅透瑞',  suffix:'101'} ],
   10: [ {id:'c10101',name:'薄紅透瑞',  suffix:'101'} ],
-  11: [ {id:'c11101',name:'薄紅透瑞',  suffix:'101'},{id:'c11102',name:'禁忌織夢',  suffix:'102'},{id:'c11103',name:'濕身之秀',  suffix:'103'},{id:'c11104',name:'片刻歡愉',  suffix:'104'},{id:'c11105',name:'即興發揮',    suffix:'105'},{id:'c11106',name:'午夜私語',  suffix:'106'},{id:'c11108',name:'成名的代價',suffix:'108'} ],
-  12: [ {id:'c12101',name:'薄紅透瑞',  suffix:'101'},{id:'c12105',name:'即興發揮',    suffix:'105'},{id:'c12106',name:'午夜私語',  suffix:'106'} ],
-  13: [ {id:'c13101',name:'薄紅透瑞',  suffix:'101'},{id:'c13105',name:'即興發揮',    suffix:'105'} ],
-  14: [ {id:'c14101',name:'薄紅透瑞',  suffix:'101'},{id:'c14102',name:'禁忌織夢',  suffix:'102'},{id:'c14103',name:'濕身之秀',  suffix:'103'},{id:'c14104',name:'片刻歡愉',  suffix:'104'},{id:'c14105',name:'即興發揮',    suffix:'105'},{id:'c14106',name:'午夜私語',  suffix:'106'} ],
-  15: [ {id:'c15101',name:'薄紅透瑞',  suffix:'101'},{id:'c15105',name:'即興發揮',    suffix:'105'} ],
-  16: [ {id:'c16101',name:'薄紅透瑞',  suffix:'101'},{id:'c16106',name:'午夜私語',  suffix:'106'} ],
-  17: [ {id:'c17101',name:'薄紅透瑞',  suffix:'101'},{id:'c17106',name:'午夜私語',  suffix:'106'} ],
+  11: [ {id:'c11101',name:'薄紅透瑞',  suffix:'101'},{id:'c11102',name:'禁忌織夢',  suffix:'102'},{id:'c11103',name:'濕身之秀',  suffix:'103'},{id:'c11104',name:'片刻歡愉',  suffix:'104'},{id:'c11105',name:'即興發揮',  suffix:'105'},{id:'c11106',name:'午夜私語',  suffix:'106'},{id:'c11108',name:'成名的代價',suffix:'108'},{id:'c11109',name:'如夢似幻',  suffix:'109'} ],
+  12: [ {id:'c12101',name:'薄紅透瑞',  suffix:'101'},{id:'c12105',name:'即興發揮',  suffix:'105'},{id:'c12106',name:'午夜私語',  suffix:'106'} ],
+  13: [ {id:'c13101',name:'薄紅透瑞',  suffix:'101'},{id:'c13105',name:'即興發揮',  suffix:'105'} ],
+  14: [ {id:'c14101',name:'薄紅透瑞',  suffix:'101'},{id:'c14102',name:'禁忌織夢',  suffix:'102'},{id:'c14103',name:'濕身之秀',  suffix:'103'},{id:'c14104',name:'片刻歡愉',  suffix:'104'},{id:'c14105',name:'即興發揮',  suffix:'105'},{id:'c14106',name:'午夜私語',  suffix:'106'},{id:'c14108',name:'成名的代價',suffix:'108'},{id:'c14109',name:'如夢似幻',  suffix:'109'} ],
+  15: [ {id:'c15101',name:'薄紅透瑞',  suffix:'101'},{id:'c15105',name:'即興發揮',  suffix:'105'} ],
+  16: [ {id:'c16101',name:'薄紅透瑞',  suffix:'101'},{id:'c16106',name:'午夜私語',  suffix:'106'},{id:'c16108',name:'成名的代價',suffix:'108'},{id:'c16109',name:'如夢似幻',  suffix:'109'} ],
+  17: [ {id:'c17101',name:'薄紅透瑞',  suffix:'101'},{id:'c17106',name:'午夜私語',  suffix:'106'},{id:'c17108',name:'成名的代價',suffix:'108'},{id:'c17109',name:'如夢似幻',  suffix:'109'} ],
   18: [ {id:'c18101',name:'薄紅透瑞',  suffix:'101'} ],
-  19: [ {id:'c19101',name:'薄紅透瑞',  suffix:'101'},{id:'c19102',name:'禁忌織夢',  suffix:'102'},{id:'c19103',name:'濕身之秀',  suffix:'103'},{id:'c19104',name:'片刻歡愉',  suffix:'104'},{id:'c19106',name:'午夜私語',  suffix:'106'},{id:'c19108',name:'成名的代價',suffix:'108'} ],
-  20: [ {id:'c20101',name:'薄紅透瑞',  suffix:'101'},{id:'c20106',name:'午夜私語',  suffix:'106'} ],
-  21: [ {id:'c21101',name:'薄紅透瑞',  suffix:'101'},{id:'c21102',name:'禁忌織夢',  suffix:'102'},{id:'c21103',name:'濕身之秀',  suffix:'103'},{id:'c21104',name:'片刻歡愉',  suffix:'104'},{id:'c21106',name:'午夜私語',  suffix:'106'},{id:'c21108',name:'成名的代價',suffix:'108'} ],
-  22: [ {id:'c22101',name:'薄紅透瑞',  suffix:'101'},{id:'c22106',name:'午夜私語',  suffix:'106'},{id:'c22107',name:'幻夢曇花',  suffix:'107'} ],
+  19: [ {id:'c19101',name:'薄紅透瑞',  suffix:'101'},{id:'c19102',name:'禁忌織夢',  suffix:'102'},{id:'c19103',name:'濕身之秀',  suffix:'103'},{id:'c19104',name:'片刻歡愉',  suffix:'104'},{id:'c19106',name:'午夜私語',  suffix:'106'},{id:'c19108',name:'成名的代價',suffix:'108'},{id:'c19109',name:'如夢似幻',  suffix:'109'} ],
+  20: [ {id:'c20101',name:'薄紅透瑞',  suffix:'101'},{id:'c20106',name:'午夜私語',  suffix:'106'},{id:'c20108',name:'成名的代價',suffix:'108'},{id:'c20109',name:'如夢似幻',  suffix:'109'} ],
+  21: [ {id:'c21101',name:'薄紅透瑞',  suffix:'101'},{id:'c21102',name:'禁忌織夢',  suffix:'102'},{id:'c21103',name:'濕身之秀',  suffix:'103'},{id:'c21104',name:'片刻歡愉',  suffix:'104'},{id:'c21106',name:'午夜私語',  suffix:'106'},{id:'c21108',name:'成名的代價',suffix:'108'},{id:'c21109',name:'如夢似幻',  suffix:'109'} ],
+  22: [ {id:'c22101',name:'薄紅透瑞',  suffix:'101'},{id:'c22106',name:'午夜私語',  suffix:'106'},{id:'c22107',name:'幻夢曇花',  suffix:'107'},{id:'c22108',name:'成名的代價',suffix:'108'},{id:'c22109',name:'如夢似幻',  suffix:'109'} ],
   23: [ {id:'c23101',name:'薄紅透瑞',  suffix:'101'},{id:'c23104',name:'片刻歡愉',  suffix:'104'} ],
-  24: [ {id:'c24101',name:'薄紅透瑞',  suffix:'101'},{id:'c24106',name:'午夜私語',  suffix:'106'} ],
-  25: [ {id:'c25101',name:'薄紅透瑞',  suffix:'101'},{id:'c25106',name:'午夜私語',  suffix:'106'} ],
+  24: [ {id:'c24101',name:'薄紅透瑞',  suffix:'101'},{id:'c24106',name:'午夜私語',  suffix:'106'},{id:'c24108',name:'成名的代價',suffix:'108'},{id:'c24109',name:'如夢似幻',  suffix:'109'} ],
+  25: [ {id:'c25101',name:'薄紅透瑞',  suffix:'101'},{id:'c25106',name:'午夜私語',  suffix:'106'},{id:'c25108',name:'成名的代價',suffix:'108'},{id:'c25109',name:'如夢似幻',  suffix:'109'} ],
   26: [ {id:'c26104',name:'片刻歡愉',  suffix:'104'} ],
   28: [ {id:'c28104',name:'片刻歡愉',  suffix:'104'} ],
-  29: [ {id:'c29104',name:'片刻歡愉',  suffix:'104'},{id:'c29106',name:'午夜私語',  suffix:'106'} ],
-  30: [ {id:'c30102',name:'禁忌織夢',  suffix:'102'},{id:'c30103',name:'濕身之秀',  suffix:'103'},{id:'c30104',name:'片刻歡愉',  suffix:'104'},{id:'c30106',name:'午夜私語',  suffix:'106'} ],
+  29: [ {id:'c29104',name:'片刻歡愉',  suffix:'104'},{id:'c29106',name:'午夜私語',  suffix:'106'},{id:'c29108',name:'成名的代價',suffix:'108'},{id:'c29109',name:'如夢似幻',  suffix:'109'} ],
+  30: [ {id:'c30102',name:'禁忌織夢',  suffix:'102'},{id:'c30103',name:'濕身之秀',  suffix:'103'},{id:'c30104',name:'片刻歡愉',  suffix:'104'},{id:'c30106',name:'午夜私語',  suffix:'106'},{id:'c30108',name:'成名的代價',suffix:'108'},{id:'c30109',name:'如夢似幻',  suffix:'109'} ],
   // id=27: 無時裝檔案；id=31: 靜態存在但無對應動態，不納入
 };
 
@@ -709,7 +719,7 @@ const CHARACTERS = [
   {id:32,name:'緋川炎華',   el:'火', rarity:'SSR'},
   {id:33,name:'翠葉凜音',   el:'草', rarity:'SSR'},
   {id:34,name:'藍澤珠那',   el:'水', rarity:'SSR'},
-  {id:35,name:'焔崎夕妃',   el:'火', rarity:'SSR'},
+  {id:35,name:'冰室涼香',   el:'火', rarity:'SSR'},
 ];
 
 // 5段資料（按母音分組：a/i/u/e/o）
@@ -746,6 +756,18 @@ const STAGES = [
       {h:'を',k:'ヲ',r:'wo'},{h:'ん',k:'ン',r:'n'},
     ]},
 ];
+
+// 濁音・半濁音關
+const DAKU_STAGE = {
+  id:'daku', name:'濁音・半濁音', label:'が・ざ・だ・ば・ぱ行', icon:'が゛',
+  kana:[
+    {h:'が',k:'ガ',r:'ga'}, {h:'ぎ',k:'ギ',r:'gi'}, {h:'ぐ',k:'グ',r:'gu'}, {h:'げ',k:'ゲ',r:'ge'}, {h:'ご',k:'ゴ',r:'go'},
+    {h:'ざ',k:'ザ',r:'za'}, {h:'じ',k:'ジ',r:'ji'}, {h:'ず',k:'ズ',r:'zu'}, {h:'ぜ',k:'ゼ',r:'ze'}, {h:'ぞ',k:'ゾ',r:'zo'},
+    {h:'だ',k:'ダ',r:'da'}, {h:'ぢ',k:'ヂ',r:'di'}, {h:'づ',k:'ヅ',r:'du'}, {h:'で',k:'デ',r:'de'}, {h:'ど',k:'ド',r:'do'},
+    {h:'ば',k:'バ',r:'ba'}, {h:'び',k:'ビ',r:'bi'}, {h:'ぶ',k:'ブ',r:'bu'}, {h:'べ',k:'ベ',r:'be'}, {h:'ぼ',k:'ボ',r:'bo'},
+    {h:'ぱ',k:'パ',r:'pa'}, {h:'ぴ',k:'ピ',r:'pi'}, {h:'ぷ',k:'プ',r:'pu'}, {h:'ぺ',k:'ペ',r:'pe'}, {h:'ぽ',k:'ポ',r:'po'},
+  ],
+};
 
 // 魔王關：全50音混合
 const BOSS_STAGE = (() => {
@@ -871,8 +893,8 @@ const ACHIEVEMENTS = [
   { id:'combo_max',      name:'無懈可擊',       icon:'💥', desc:'單回合全程零失誤完成',    cond:'一個回合內完全沒有失誤地配對所有牌組', cat:'連擊', reward:'c02102' },
   // ── 配對 ──
   { id:'match_50',       name:'配對新手',       icon:'✨', desc:'累計配對成功50次',        cond:'遊戲累計配對成功達50次',              cat:'配對', reward:'c02103' },
-  { id:'match_200',      name:'配對老手',       icon:'💫', desc:'累計配對成功200次',       cond:'遊戲累計配對成功達200次',             cat:'配對', reward:'c02104' },
-  { id:'match_500',      name:'配對大師',       icon:'🌙', desc:'累計配對成功500次',       cond:'遊戲累計配對成功達500次',             cat:'配對', reward:'c02106' },
+  { id:'match_200',      name:'配對老手',       icon:'💫', desc:'累計配對成功150次',       cond:'遊戲累計配對成功達150次',             cat:'配對', reward:'c02104' },
+  { id:'match_500',      name:'配對大師',       icon:'🌙', desc:'累計配對成功300次',       cond:'遊戲累計配對成功達300次',             cat:'配對', reward:'c02106' },
   // ── 完美 ──
   { id:'perfect_base',   name:'完美學習',       icon:'⭐', desc:'零失誤通關任意基礎段',   cond:'通關任意基礎段，全程沒有任何失誤',    cat:'完美', reward:'c03101' },
   { id:'perfect_comp',   name:'完美綜合',       icon:'🌠', desc:'零失誤通關任意綜合題關', cond:'通關任意綜合題關，全程沒有任何失誤',  cat:'完美', reward:'c03105' },
@@ -896,11 +918,11 @@ const ACHIEVEMENTS = [
   { id:'star3_all_comp', name:'綜合滿星王',     icon:'🏆', desc:'全部綜合段3星',           cond:'10個綜合題關全部獲得3星評分',         cat:'星級', reward:'c07101' },
   { id:'star3_boss',     name:'魔王完全制霸',   icon:'👑', desc:'魔王關3星',               cond:'零失誤通關魔王關獲得3星評分',         cat:'星級', reward:'c07102' },
   // ── 配對里程碑 ──
-  { id:'match_1000',     name:'千次配對',       icon:'✨', desc:'累計配對成功1000次',      cond:'遊戲累計配對成功達1000次',            cat:'配對', reward:'c07103' },
-  { id:'match_2000',     name:'兩千配對',       icon:'💫', desc:'累計配對成功2000次',      cond:'遊戲累計配對成功達2000次',            cat:'配對', reward:'c07104' },
-  { id:'match_3000',     name:'配對狂熱',       icon:'🌙', desc:'累計配對成功3000次',      cond:'遊戲累計配對成功達3000次',            cat:'配對', reward:'c07106' },
-  { id:'match_5000',     name:'配對宗師',       icon:'🌙', desc:'累計配對成功5000次',      cond:'遊戲累計配對成功達5000次',            cat:'配對', reward:'c07108' },
-  { id:'match_10000',    name:'配對神話',       icon:'🌙', desc:'累計配對成功10000次',     cond:'遊戲累計配對成功達10000次',           cat:'配對', reward:'c08101' },
+  { id:'match_1000',     name:'千次配對',       icon:'✨', desc:'累計配對成功500次',       cond:'遊戲累計配對成功達500次',             cat:'配對', reward:'c07103' },
+  { id:'match_2000',     name:'配對狂熱',       icon:'💫', desc:'累計配對成功800次',       cond:'遊戲累計配對成功達800次',             cat:'配對', reward:'c07104' },
+  { id:'match_3000',     name:'配對宗師',       icon:'🌙', desc:'累計配對成功1200次',      cond:'遊戲累計配對成功達1200次',            cat:'配對', reward:'c07106' },
+  { id:'match_5000',     name:'配對傳說',       icon:'🌙', desc:'累計配對成功1800次',      cond:'遊戲累計配對成功達1800次',            cat:'配對', reward:'c07108' },
+  { id:'match_10000',    name:'配對神話',       icon:'🌙', desc:'累計配對成功2500次',      cond:'遊戲累計配對成功達2500次',            cat:'配對', reward:'c08101' },
   // ── 進階連擊 ──
   { id:'combo15',        name:'連擊名人',       icon:'🔥', desc:'單回合達成15連擊',        cond:'連續正確配對15次不失誤',              cat:'連擊', reward:'c08102' },
   { id:'combo20',        name:'連擊之神',       icon:'⚡', desc:'單回合達成20連擊',        cond:'連續正確配對20次不失誤',              cat:'連擊', reward:'c08103' },
@@ -938,7 +960,7 @@ const ACHIEVEMENTS = [
   { id:'cos20_ssr',      name:'時裝達人',       icon:'💎', desc:'解鎖20件SSR時裝',         cond:'通過成就解鎖20件SSR角色時裝',         cat:'時裝', reward:'c21104' },
   { id:'cos30_ssr',      name:'時裝狂熱者',     icon:'✨', desc:'解鎖30件SSR時裝',         cond:'通過成就解鎖30件SSR角色時裝',         cat:'時裝', reward:'c21106' },
   { id:'cos50_ssr',      name:'時裝大師',       icon:'🌟', desc:'解鎖50件SSR時裝',         cond:'通過成就解鎖50件SSR角色時裝',         cat:'時裝', reward:'c21108' },
-  { id:'cos_all_ssr',    name:'時裝傳說',       icon:'👑', desc:'解鎖全部SSR時裝',         cond:'通過成就解鎖全部76件SSR角色時裝',     cat:'時裝', reward:'c24101' },
+  { id:'cos_all_ssr',    name:'時裝傳說',       icon:'👑', desc:'解鎖全部SSR時裝',         cond:'通過成就解鎖全部109件SSR角色時裝',    cat:'時裝', reward:'c24101' },
   // ── 累計EXP ──
   { id:'exp5000',        name:'修煉者',         icon:'💡', desc:'累計獲得5000 EXP',         cond:'角色養成累計獲得5000 EXP',            cat:'角色', reward:'c24106' },
   { id:'exp20000',       name:'修煉高手',       icon:'🔮', desc:'累計獲得20000 EXP',        cond:'角色養成累計獲得20000 EXP',           cat:'角色', reward:'c26104' },
@@ -950,6 +972,42 @@ const ACHIEVEMENTS = [
   { id:'chars25_max',    name:'神話陣容',       icon:'🌠', desc:'25個角色達MAX',           cond:'讓25名角色升至最高等級LV.20',         cat:'角色', reward:'c30103' },
   { id:'chars_all_lv15', name:'全員超凡',       icon:'🌟', desc:'全部角色達LV.15',         cond:'讓全部31名角色升至LV.15以上',         cat:'角色', reward:'c30104' },
   { id:'chars_all_max',  name:'神話軍團',       icon:'👑', desc:'全部角色達MAX',           cond:'讓全部31名角色升至最高等級LV.20',     cat:'角色', reward:'c30106' },
+  // ── 成名的代價 補完（108系列）──
+  { id:'cos108_02', name:'成名的代價II',   icon:'🎬', desc:'解鎖吉原玲成名的代價',     cond:'累計通關15個關卡',       cat:'時裝', reward:'c02108' },
+  { id:'cos108_03', name:'成名的代價III',  icon:'🎬', desc:'解鎖影霧白姬成名的代價',   cond:'累計通關20個關卡',       cat:'時裝', reward:'c03108' },
+  { id:'cos108_06', name:'成名的代價VI',   icon:'🎬', desc:'解鎖天城雫成名的代價',     cond:'累計完美通關5個關卡',    cat:'時裝', reward:'c06108' },
+  { id:'cos108_08', name:'成名的代價VIII', icon:'🎬', desc:'解鎖桃瀨愛成名的代價',     cond:'累計完美通關8個關卡',    cat:'時裝', reward:'c08108' },
+  { id:'cos108_11', name:'成名的代價XI',   icon:'🎬', desc:'解鎖花園奏成名的代價',     cond:'累計配對成功200次',      cat:'時裝', reward:'c11108' },
+  { id:'cos108_14', name:'成名的代價XIV',  icon:'🎬', desc:'解鎖日向葵成名的代價',     cond:'累計配對成功300次',      cat:'時裝', reward:'c14108' },
+  { id:'cos108_16', name:'成名的代價XVI',  icon:'🎬', desc:'解鎖白雪蒼成名的代價',     cond:'累計配對成功400次',      cat:'時裝', reward:'c16108' },
+  { id:'cos108_17', name:'成名的代價XVII', icon:'🎬', desc:'解鎖鈴木鈴成名的代價',     cond:'累計配對成功500次',      cat:'時裝', reward:'c17108' },
+  { id:'cos108_20', name:'成名的代價XX',   icon:'🎬', desc:'解鎖姬宮詩織成名的代價',   cond:'達成20連擊',             cat:'時裝', reward:'c20108' },
+  { id:'cos108_22', name:'成名的代價XXII', icon:'🎬', desc:'解鎖宵町紫苑成名的代價',   cond:'通關濁音・半濁音關',     cat:'時裝', reward:'c22108' },
+  { id:'cos108_24', name:'成名的代價XXIV', icon:'🎬', desc:'解鎖橘花梨成名的代價',     cond:'累計通關30個關卡',       cat:'時裝', reward:'c24108' },
+  { id:'cos108_25', name:'成名的代價XXV',  icon:'🎬', desc:'解鎖桜井凜成名的代價',     cond:'累計通關35個關卡',       cat:'時裝', reward:'c25108' },
+  { id:'cos108_29', name:'成名的代價XXIX', icon:'🎬', desc:'解鎖神代美月成名的代價',   cond:'累計通關40個關卡',       cat:'時裝', reward:'c29108' },
+  { id:'cos108_30', name:'成名的代價XXX',  icon:'🎬', desc:'解鎖星川夜空成名的代價',   cond:'累計通關45個關卡',       cat:'時裝', reward:'c30108' },
+  // ── 如夢似幻（109系列）──
+  { id:'cos109_01', name:'如夢似幻I',      icon:'🌸', desc:'解鎖天道克拉拉如夢似幻',   cond:'首次通關魔王關',         cat:'時裝', reward:'c01109' },
+  { id:'cos109_02', name:'如夢似幻II',     icon:'🌸', desc:'解鎖吉原玲如夢似幻',       cond:'通關魔王關3星',          cat:'時裝', reward:'c02109' },
+  { id:'cos109_03', name:'如夢似幻III',    icon:'🌸', desc:'解鎖影霧白姬如夢似幻',     cond:'通關終極魔王關',         cat:'時裝', reward:'c03109' },
+  { id:'cos109_04', name:'如夢似幻IV',     icon:'🌸', desc:'解鎖維納斯如夢似幻',       cond:'通關終極魔王關3星',      cat:'時裝', reward:'c04109' },
+  { id:'cos109_05', name:'如夢似幻V',      icon:'🌸', desc:'解鎖黑原讀子如夢似幻',     cond:'累計完美通關10個關卡',   cat:'時裝', reward:'c05109' },
+  { id:'cos109_06', name:'如夢似幻VI',     icon:'🌸', desc:'解鎖天城雫如夢似幻',       cond:'累計完美通關15個關卡',   cat:'時裝', reward:'c06109' },
+  { id:'cos109_07', name:'如夢似幻VII',    icon:'🌸', desc:'解鎖夜桜詩乃如夢似幻',     cond:'累計完美通關20個關卡',   cat:'時裝', reward:'c07109' },
+  { id:'cos109_08', name:'如夢似幻VIII',   icon:'🌸', desc:'解鎖桃瀨愛如夢似幻',       cond:'累計完美通關25個關卡',   cat:'時裝', reward:'c08109' },
+  { id:'cos109_11', name:'如夢似幻XI',     icon:'🌸', desc:'解鎖花園奏如夢似幻',       cond:'累計配對成功600次',      cat:'時裝', reward:'c11109' },
+  { id:'cos109_14', name:'如夢似幻XIV',    icon:'🌸', desc:'解鎖日向葵如夢似幻',       cond:'累計配對成功700次',      cat:'時裝', reward:'c14109' },
+  { id:'cos109_16', name:'如夢似幻XVI',    icon:'🌸', desc:'解鎖白雪蒼如夢似幻',       cond:'累計配對成功800次',      cat:'時裝', reward:'c16109' },
+  { id:'cos109_17', name:'如夢似幻XVII',   icon:'🌸', desc:'解鎖鈴木鈴如夢似幻',       cond:'累計配對成功900次',      cat:'時裝', reward:'c17109' },
+  { id:'cos109_19', name:'如夢似幻XIX',    icon:'🌸', desc:'解鎖氷咲如夢似幻',         cond:'累計配對成功1000次',     cat:'時裝', reward:'c19109' },
+  { id:'cos109_20', name:'如夢似幻XX',     icon:'🌸', desc:'解鎖姬宮詩織如夢似幻',     cond:'累計EXP達30000',         cat:'時裝', reward:'c20109' },
+  { id:'cos109_21', name:'如夢似幻XXI',    icon:'🌸', desc:'解鎖霧島葵如夢似幻',       cond:'累計EXP達50000',         cat:'時裝', reward:'c21109' },
+  { id:'cos109_22', name:'如夢似幻XXII',   icon:'🌸', desc:'解鎖宵町紫苑如夢似幻',     cond:'累計EXP達70000',         cat:'時裝', reward:'c22109' },
+  { id:'cos109_24', name:'如夢似幻XXIV',   icon:'🌸', desc:'解鎖橘花梨如夢似幻',       cond:'所有角色達LV.10以上',    cat:'時裝', reward:'c24109' },
+  { id:'cos109_25', name:'如夢似幻XXV',    icon:'🌸', desc:'解鎖桜井凜如夢似幻',       cond:'所有角色達LV.15以上',    cat:'時裝', reward:'c25109' },
+  { id:'cos109_29', name:'如夢似幻XXIX',   icon:'🌸', desc:'解鎖神代美月如夢似幻',     cond:'達成30連擊',             cat:'時裝', reward:'c29109' },
+  { id:'cos109_30', name:'如夢似幻XXX',    icon:'🌸', desc:'解鎖星川夜空如夢似幻',     cond:'達成50連擊',             cat:'時裝', reward:'c30109' },
 ];
 
 // ══════════════════════════════════════════
@@ -1017,14 +1075,14 @@ function checkAchievements(ctx = {}) {
   if (cb >= 25) unlockAchievement('combo25');
   if (ctx.perfectRound) unlockAchievement('combo_max');
   // 配對數
-  if (M >= 50)    unlockAchievement('match_50');
-  if (M >= 200)   unlockAchievement('match_200');
-  if (M >= 500)   unlockAchievement('match_500');
-  if (M >= 1000)  unlockAchievement('match_1000');
-  if (M >= 2000)  unlockAchievement('match_2000');
-  if (M >= 3000)  unlockAchievement('match_3000');
-  if (M >= 5000)  unlockAchievement('match_5000');
-  if (M >= 10000) unlockAchievement('match_10000');
+  if (M >= 50)   unlockAchievement('match_50');
+  if (M >= 150)  unlockAchievement('match_200');
+  if (M >= 300)  unlockAchievement('match_500');
+  if (M >= 500)  unlockAchievement('match_1000');
+  if (M >= 800)  unlockAchievement('match_2000');
+  if (M >= 1200) unlockAchievement('match_3000');
+  if (M >= 1800) unlockAchievement('match_5000');
+  if (M >= 2500) unlockAchievement('match_10000');
   // 完美通關
   if (ctx.perfectClear) {
     const sid = ctx.stageId;
@@ -1088,7 +1146,46 @@ function checkAchievements(ctx = {}) {
   if (sc >= 20) unlockAchievement('cos20_ssr');
   if (sc >= 30) unlockAchievement('cos30_ssr');
   if (sc >= 50) unlockAchievement('cos50_ssr');
-  if (sc >= 76) unlockAchievement('cos_all_ssr');
+  if (sc >= 109) unlockAchievement('cos_all_ssr');
+  // 成名的代價 補完（108）
+  const tc = gs.totalClears || 0;
+  const pc = gs.perfectClears || 0;
+  if (tc >= 15) unlockAchievement('cos108_02');
+  if (tc >= 20) unlockAchievement('cos108_03');
+  if (pc >= 5)  unlockAchievement('cos108_06');
+  if (pc >= 8)  unlockAchievement('cos108_08');
+  const M = gs.totalMatches || 0;
+  if (M >= 100) unlockAchievement('cos108_11');
+  if (M >= 150) unlockAchievement('cos108_14');
+  if (M >= 200) unlockAchievement('cos108_16');
+  if (M >= 250) unlockAchievement('cos108_17');
+  if ((gs.maxComboEver||0) >= 20) unlockAchievement('cos108_20');
+  if (gs.stageClears && gs.stageClears['daku']) unlockAchievement('cos108_22');
+  if (tc >= 30) unlockAchievement('cos108_24');
+  if (tc >= 35) unlockAchievement('cos108_25');
+  if (tc >= 40) unlockAchievement('cos108_29');
+  if (tc >= 45) unlockAchievement('cos108_30');
+  // 如夢似幻（109）
+  if (ctx.stageId === 'boss' && ctx.perfectClear !== undefined) unlockAchievement('cos109_01');
+  if (ctx.stageId === 'boss' && ctx.perfectClear) unlockAchievement('cos109_02');
+  if (ctx.stageId === 'boss2' && ctx.perfectClear !== undefined) unlockAchievement('cos109_03');
+  if (ctx.stageId === 'boss2' && ctx.perfectClear) unlockAchievement('cos109_04');
+  if (pc >= 10)  unlockAchievement('cos109_05');
+  if (pc >= 15)  unlockAchievement('cos109_06');
+  if (pc >= 20)  unlockAchievement('cos109_07');
+  if (pc >= 25)  unlockAchievement('cos109_08');
+  if (M >= 300) unlockAchievement('cos109_11');
+  if (M >= 400) unlockAchievement('cos109_14');
+  if (M >= 500) unlockAchievement('cos109_16');
+  if (M >= 600) unlockAchievement('cos109_17');
+  if (M >= 700) unlockAchievement('cos109_19');
+  if (te >= 30000) unlockAchievement('cos109_20');
+  if (te >= 50000) unlockAchievement('cos109_21');
+  if (te >= 70000) unlockAchievement('cos109_22');
+  if (lv10c >= total) unlockAchievement('cos109_24');
+  if (lv15c >= total) unlockAchievement('cos109_25');
+  if ((gs.maxComboEver||0) >= 30) unlockAchievement('cos109_29');
+  if ((gs.maxComboEver||0) >= 50) unlockAchievement('cos109_30');
   // 累計EXP
   const te = gs.totalExpEarned || 0;
   if (te >= 5000)   unlockAchievement('exp5000');
@@ -1397,6 +1494,18 @@ function renderStages() {
     </div>`;
   }).join('');
 
+  // 濁音・半濁音關
+  const dakuCleared = gs.stageClears['daku'];
+  const dakuStars = dakuCleared ? '⭐'.repeat(dakuCleared.stars) + '☆'.repeat(3-dakuCleared.stars) : '☆☆☆';
+  document.getElementById('daku-grid').innerHTML = `
+    <div class="stage-btn ${dakuCleared?'completed':''}" onclick="enterStage('daku')"
+      style="border-color:#81c784;background:linear-gradient(135deg,#0a200a,#001200)">
+      <div class="stage-hira" style="font-size:22px">が</div>
+      <div class="stage-name" style="color:#81c784">濁音・半濁音</div>
+      <div style="font-size:9px;color:#aaa">が・ざ・だ・ば・ぱ行 全25字</div>
+      <div class="stage-stars">${dakuStars}</div>
+    </div>`;
+
   renderReviewSection();
 }
 
@@ -1404,7 +1513,7 @@ function renderStages() {
 //  遊戲邏輯
 // ══════════════════════════════════════════
 function enterStage(stageId) {
-  const stage = STAGES.find(s => s.id === stageId) || COMP_STAGES.find(s => s.id === stageId) || (stageId === 'boss' ? BOSS_STAGE : null) || (stageId === 'boss2' ? BOSS2_STAGE : null);
+  const stage = STAGES.find(s => s.id === stageId) || COMP_STAGES.find(s => s.id === stageId) || (stageId === 'boss' ? BOSS_STAGE : null) || (stageId === 'boss2' ? BOSS2_STAGE : null) || (stageId === 'daku' ? DAKU_STAGE : null);
   const rounds = buildRounds(stage);
   game = {
     stageId, stage, rounds, roundIdx: 0,
@@ -1854,6 +1963,7 @@ function buildReviewKana() {
   STAGES.forEach(s => s.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); }));
   COMP_STAGES.forEach(s => s.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); }));
   BOSS_STAGE.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); });
+  DAKU_STAGE.kana.forEach(k => { if (!ALL_KANA.find(x => x.r === k.r)) ALL_KANA.push(k); });
 
   return Object.entries(gs.kanaMistakes)
     .filter(([r]) => r && ALL_KANA.find(k => k.r === r))
