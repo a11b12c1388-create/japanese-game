@@ -143,9 +143,11 @@
   .ach-reward.got { color: #ffd700; }
 
   /* ── 角色圖鑑 ── */
-  #screen-collection { background: #0f0c29; justify-content: flex-start; padding-top: 20px; gap: 0; }
+  #screen-collection { background: #0f0c29; justify-content: flex-start; padding-top: 20px; gap: 0; overflow-x: hidden; }
   .collection-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
-    width: 100%; max-width: 480px; margin: 12px 0; overflow-y: auto; max-height: calc(100dvh - 160px); }
+    width: 100%; max-width: 480px; margin: 12px 0; overflow-y: auto; overflow-x: hidden; max-height: calc(100dvh - 160px);
+    scrollbar-width: none; }
+  .collection-grid::-webkit-scrollbar { display: none; }
   .col-card { border-radius: 10px; border: 2px solid #333; padding: 8px 4px;
     display: flex; flex-direction: column; align-items: center; gap: 3px;
     cursor: pointer; transition: transform .15s; position: relative; touch-action: manipulation; }
@@ -436,6 +438,8 @@
       <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333" onclick="showScreen('titles')">🏅 稱號</button>
       <button class="btn" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#333" onclick="showScreen('gacha')">🎰 時裝抽卡</button>
       <button class="btn" style="background:linear-gradient(135deg,#00b4db,#0083b0);color:#fff" onclick="showScreen('shop')">💎 影片商店</button>
+      <button id="debug-diamonds-btn" class="btn" style="background:#333;color:#ffd700;font-size:12px;opacity:0.6" onclick="gs.diamonds=(gs.diamonds||0)+10000;saveGame();renderHome();this.textContent='✅ 已給予';this.disabled=true">🛠 測試 +10000💎</button>
+      <button class="btn" style="background:#333;color:#f48fb1;font-size:12px;opacity:0.6" onclick="if(!confirm('移除所有可抽時裝？'))return;CHARACTERS.forEach(c=>{if(c.rarity!=='SSR')return;(COSTUMES[c.id]||[]).forEach(co=>{delete gs.costumes[co.id];});});saveGame();showToast('已移除所有可抽時裝');">🛠 重置抽卡時裝</button>
     </div>
   </div>
 </div>
@@ -467,7 +471,7 @@
 
 <!-- 影片播放浮層 -->
 <div id="video-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#000d;align-items:center;justify-content:center;flex-direction:column;gap:12px">
-  <video id="overlay-video" controls playsinline style="max-width:95vw;max-height:80dvh;border-radius:12px;background:#000"></video>
+  <video id="overlay-video" controls playsinline muted style="max-width:95vw;max-height:80dvh;border-radius:12px;background:#000"></video>
   <button class="btn btn-blue" onclick="closeVideoOverlay()" style="max-width:160px">✕ 關閉</button>
 </div>
 
@@ -478,6 +482,7 @@
     <div class="ach-pop-title">🎉 成就解鎖！</div>
     <div class="ach-pop-name"></div>
     <div class="ach-pop-desc"></div>
+    <div class="ach-pop-diamonds" style="font-size:12px;color:#64dfff;font-weight:bold;margin-top:2px"></div>
   </div>
 </div>
 
@@ -680,6 +685,7 @@
           <div class="costume-row" id="modal-costume-row"></div>
         </div>
       </div>
+      <div id="modal-aff-row" style="display:flex;align-items:center;gap:10px;width:100%;margin-top:6px"></div>
     </div>
   </div>
 </div>
@@ -1006,6 +1012,7 @@ let gs = {
   loginStreak: { lastDate: null, streak: 0 },
   titles: { unlocked: [], active: null },
   affection: {},
+  affectionItems: {},
   bestTimes: {},
   gacha: { pity: 0, history: [] },
 };
@@ -1164,17 +1171,56 @@ const ACHIEVEMENTS = [
 // ══════════════════════════════════════════
 //  成就系統
 // ══════════════════════════════════════════
+const ACH_DIAMONDS = {
+  // 學習
+  first_match:30, clear_dan1:40, clear_all_base:80, clear_all_comp:120, clear_boss:150,
+  clears10:50, clears30:80, clears50:120, clears100:200,
+  // 連擊
+  combo5:40, combo10:60, combo_max:100, combo15:80, combo20:120, combo25:180,
+  // 配對
+  match_50:30, match_200:50, match_500:80, match_1000:120,
+  match_2000:160, match_3000:200, match_5000:280, match_10000:400,
+  // 完美
+  perfect_base:50, perfect_comp:80, perfect_boss:150,
+  perfect5:60, perfect10:100, perfect20:180, perfect30:250,
+  // 角色解鎖
+  unlock_10:60, unlock_20:100, unlock_all:250,
+  lv10:50, lv_max:100, active_swap:30,
+  lv5_any:30, lv15_any:80,
+  // 星級
+  star3_dan1:50, star3_dan2:50, star3_dan3:50, star3_dan4:50, star3_dan5:50,
+  star3_all_base:100, star3_any_comp:50, star3_5comp:120, star3_all_comp:200, star3_boss:180,
+  // 角色養成
+  chars3_lv10:50, chars5_lv10:70, chars10_lv10:100, chars15_lv10:130,
+  chars20_lv10:160, chars_all_lv10:250,
+  chars3_lv15:80, chars5_lv15:120, chars10_lv15:160, chars20_lv15:220, chars_all_lv15:400,
+  chars3_max:120, chars5_max:160, chars10_max:220, chars20_max:300,
+  chars_all_lv5:200, chars15_max:250, chars25_max:350, chars_all_max:600,
+  // 時裝收藏
+  cos5_ssr:60, cos10_ssr:100, cos20_ssr:160, cos30_ssr:220, cos50_ssr:350, cos_all_ssr:600,
+  // EXP
+  exp5000:60, exp20000:120, exp50000:200, exp100000:350,
+  // 108系列
+  cos108_02:40, cos108_03:50, cos108_06:60, cos108_08:80, cos108_11:70, cos108_14:80,
+  cos108_16:90, cos108_17:100, cos108_20:80, cos108_22:70,
+  cos108_24:80, cos108_25:90, cos108_29:100, cos108_30:120,
+  // 109系列
+  cos109_01:100, cos109_02:120, cos109_03:150, cos109_04:200,
+  cos109_05:100, cos109_06:120, cos109_07:150, cos109_08:180,
+  cos109_11:100, cos109_14:120, cos109_16:140, cos109_17:160, cos109_19:180,
+  cos109_20:150, cos109_21:200, cos109_22:250,
+  cos109_24:150, cos109_25:200, cos109_29:100, cos109_30:150,
+};
+
 let achPopTimer = null;
 function unlockAchievement(id) {
   if (gs.achievements[id]) return;
   gs.achievements[id] = true;
   const a = ACHIEVEMENTS.find(x => x.id === id);
   if (!a) return;
-  if (a.reward) {
-    if (!gs.costumes) gs.costumes = {};
-    gs.costumes[a.reward] = true;
-  }
-  showAchievementPopup(a);
+  const d = ACH_DIAMONDS[id] || 0;
+  if (d > 0) gs.diamonds = (gs.diamonds || 0) + d;
+  showAchievementPopup(a, d);
 }
 
 function isCostumeUnlocked(charId, costumeId) {
@@ -1191,11 +1237,13 @@ function countUnlockedSSRCostumes() {
   return n;
 }
 
-function showAchievementPopup(a) {
+function showAchievementPopup(a, diamonds) {
   const pop = document.getElementById('achievement-popup');
   pop.querySelector('.ach-pop-icon').textContent = a.icon;
   pop.querySelector('.ach-pop-name').textContent = a.name;
   pop.querySelector('.ach-pop-desc').textContent = a.desc;
+  const dEl = pop.querySelector('.ach-pop-diamonds');
+  if (dEl) dEl.textContent = diamonds > 0 ? `+${diamonds} 💎` : '';
   pop.classList.add('show');
   if (achPopTimer) clearTimeout(achPopTimer);
   achPopTimer = setTimeout(() => pop.classList.remove('show'), 3500);
@@ -1355,22 +1403,12 @@ function renderAchievements() {
     `已解鎖 ${Object.keys(gs.achievements).length} / ${ACHIEVEMENTS.length}`;
   document.getElementById('ach-list').innerHTML = [...unlocked, ...locked].map(a => {
     const done = !!gs.achievements[a.id];
-    let rewardLine = '';
-    if (a.reward) {
-      const cid = parseInt(a.reward.substring(1, 3));
-      const co  = (COSTUMES[cid] || []).find(x => x.id === a.reward);
-      const ch  = getChar(cid);
-      if (co && ch) {
-        const gotIt = done || isCostumeUnlocked(cid, a.reward);
-        rewardLine = `<div class="ach-reward ${gotIt ? 'got' : ''}">${gotIt ? '👗' : '🔒'} ${ch.name}「${co.name}」</div>`;
-      }
-    }
     return `<div class="ach-item ${done ? 'unlocked' : 'locked-ach'}">
       <div class="ach-item-icon">${a.icon}</div>
       <div class="ach-item-body">
         <div class="ach-item-name">${done ? a.name : '???'}</div>
         <div class="ach-item-desc">${done ? a.desc : `🔑 ${a.cond}`}</div>
-        ${rewardLine}
+        ${ACH_DIAMONDS[a.id] ? `<div style="font-size:11px;color:${done?'#64dfff':'#555'};font-weight:bold;margin-top:2px">${done?'已領':'+'} ${ACH_DIAMONDS[a.id]} 💎</div>` : ''}
       </div>
       <div class="ach-item-check">${done ? '✅' : '🔒'}</div>
     </div>`;
@@ -1382,21 +1420,21 @@ function setAchTab(cat) { achFilterCat = cat; renderAchievements(); }
 //  📅 每日任務
 // ══════════════════════════════════════════
 const QUEST_POOL = [
-  { id:'q_match10',   desc:'配對成功 10 次',    type:'match',   target:10,  reward:15 },
-  { id:'q_match30',   desc:'配對成功 30 次',    type:'match',   target:30,  reward:30 },
-  { id:'q_match50',   desc:'配對成功 50 次',    type:'match',   target:50,  reward:50 },
-  { id:'q_clear1',    desc:'通關任意關卡 1 次', type:'clear',   target:1,   reward:20 },
-  { id:'q_clear3',    desc:'通關任意關卡 3 次', type:'clear',   target:3,   reward:45 },
-  { id:'q_clear5',    desc:'通關任意關卡 5 次', type:'clear',   target:5,   reward:70 },
-  { id:'q_perfect1',  desc:'零失誤通關 1 次',  type:'perfect', target:1,   reward:35 },
-  { id:'q_perfect3',  desc:'零失誤通關 3 次',  type:'perfect', target:3,   reward:80 },
-  { id:'q_combo10',   desc:'達成 10 連擊',     type:'combo',   target:10,  reward:25 },
-  { id:'q_combo20',   desc:'達成 20 連擊',     type:'combo',   target:20,  reward:50 },
-  { id:'q_review1',   desc:'完成複習關 1 次',  type:'review',  target:1,   reward:20 },
-  { id:'q_challenge1',desc:'挑戰關得分 50+',   type:'chscore', target:50,  reward:30 },
-  { id:'q_challenge2',desc:'挑戰關得分 100+',  type:'chscore', target:100, reward:60 },
-  { id:'q_daku1',     desc:'通關濁音關卡 1 次',type:'stageid', target:'daku', reward:25 },
-  { id:'q_boss1',     desc:'挑戰魔王關 1 次',  type:'stageid', target:'boss', reward:40 },
+  { id:'q_match10',   desc:'配對成功 10 次',    type:'match',   target:10,  reward:40 },
+  { id:'q_match30',   desc:'配對成功 30 次',    type:'match',   target:30,  reward:80 },
+  { id:'q_match50',   desc:'配對成功 50 次',    type:'match',   target:50,  reward:130 },
+  { id:'q_clear1',    desc:'通關任意關卡 1 次', type:'clear',   target:1,   reward:50 },
+  { id:'q_clear3',    desc:'通關任意關卡 3 次', type:'clear',   target:3,   reward:110 },
+  { id:'q_clear5',    desc:'通關任意關卡 5 次', type:'clear',   target:5,   reward:180 },
+  { id:'q_perfect1',  desc:'零失誤通關 1 次',  type:'perfect', target:1,   reward:90 },
+  { id:'q_perfect3',  desc:'零失誤通關 3 次',  type:'perfect', target:3,   reward:200 },
+  { id:'q_combo10',   desc:'達成 10 連擊',     type:'combo',   target:10,  reward:60 },
+  { id:'q_combo20',   desc:'達成 20 連擊',     type:'combo',   target:20,  reward:130 },
+  { id:'q_review1',   desc:'完成複習關 1 次',  type:'review',  target:1,   reward:50 },
+  { id:'q_challenge1',desc:'挑戰關得分 50+',   type:'chscore', target:50,  reward:80 },
+  { id:'q_challenge2',desc:'挑戰關得分 100+',  type:'chscore', target:100, reward:160 },
+  { id:'q_daku1',     desc:'通關濁音關卡 1 次',type:'stageid', target:'daku', reward:60 },
+  { id:'q_boss1',     desc:'挑戰魔王關 1 次',  type:'stageid', target:'boss', reward:100 },
 ];
 
 function todayStr() {
@@ -1735,8 +1773,58 @@ function openModal(id) {
   card.className = `modal-card bg-${c.el}`;
   document.getElementById('modal-name').innerHTML = `<span class="el-${c.el}">${c.name}</span>`;
   renderModalCostumes(id);
+  renderModalAffection(id);
   document.getElementById('modal-char').classList.add('active');
   refreshModalBg(id);
+}
+
+function renderModalAffection(id) {
+  const row = document.getElementById('modal-aff-row');
+  if (!row) return;
+  if (!gs.affectionItems) gs.affectionItems = {};
+  const count = gs.affectionItems[id] || 0;
+  const aff = getAffection(id);
+  const coId = AFFECTION_COSTUME_REWARDS[id];
+  const coList = COSTUMES[id] || [];
+  const co = coId ? coList.find(x => x.id === coId) : null;
+  const cosAlready = coId && gs.costumes && gs.costumes[coId];
+  let rewardHint = '';
+  if (co && !cosAlready) rewardHint = `<span style="font-size:10px;color:#f48fb1">💞 滿好感可得「${co.name}」</span>`;
+  else if (cosAlready) rewardHint = `<span style="font-size:10px;color:#81c784">✅ 已獲得時裝獎勵</span>`;
+  row.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
+      <div style="font-size:11px;color:#f48fb1">💕 好感度道具 × ${count}</div>
+      ${rewardHint}
+    </div>
+    ${count > 0 && aff < 100 ? `
+      <button onclick="useAffectionItem(${id})" style="padding:6px 14px;border:none;border-radius:16px;background:linear-gradient(135deg,#f48fb1,#ce93d8);color:#fff;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;touch-action:manipulation">使用 (+10)</button>
+      <button onclick="useAllAffectionItems(${id})" style="padding:6px 14px;border:none;border-radius:16px;background:linear-gradient(135deg,#ce93d8,#9c27b0);color:#fff;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;touch-action:manipulation">全部使用</button>
+    ` : ''}
+  `;
+}
+
+function useAffectionItem(id) {
+  if (!gs.affectionItems) gs.affectionItems = {};
+  if ((gs.affectionItems[id] || 0) <= 0) return;
+  gs.affectionItems[id]--;
+  addAffection(id, 10);
+  saveGame();
+  renderModalAffection(id);
+  if (gs.activeCharId === id) renderHome();
+}
+
+function useAllAffectionItems(id) {
+  if (!gs.affectionItems) gs.affectionItems = {};
+  const count = gs.affectionItems[id] || 0;
+  if (count <= 0) return;
+  const aff = getAffection(id);
+  const needed = Math.ceil((100 - aff) / 10);
+  const use = Math.min(count, needed);
+  gs.affectionItems[id] = count - use;
+  addAffection(id, use * 10);
+  saveGame();
+  renderModalAffection(id);
+  if (gs.activeCharId === id) renderHome();
 }
 
 function renderModalCostumes(id) {
@@ -2086,10 +2174,10 @@ function allRoundsComplete() {
     ||(game.stageId==='daku'?DAKU_STAGE:null);
   let diamondEarned = 0;
   if (stage) {
-    if (stage.isBoss2) diamondEarned = 50;
-    else if (stage.isBoss) diamondEarned = 30;
-    else if (stage.isComp) diamondEarned = 15 + stars * 3;
-    else diamondEarned = 10 + stars * 3;
+    if (stage.isBoss2) diamondEarned = 120;
+    else if (stage.isBoss) diamondEarned = 80;
+    else if (stage.isComp) diamondEarned = 40 + stars * 8;
+    else diamondEarned = 25 + stars * 8;
   }
   // 首通額外加倍
   if (!prev) diamondEarned *= 2;
@@ -2503,7 +2591,7 @@ function checkLoginStreak() {
   if (ls.lastDate === yStr) { ls.streak++; }
   else { ls.streak = 1; }
   ls.lastDate = today;
-  const rewards = [10,15,20,30,50,60,100];
+  const rewards = [20,30,50,80,120,160,250];
   const reward = rewards[Math.min(ls.streak-1, rewards.length-1)];
   gs.diamonds = (gs.diamonds||0) + reward;
   saveGame();
@@ -2586,7 +2674,15 @@ function renderTitles() {
 // ══════════════════════════════════════════
 const MAX_AFFECTION = 100;
 const AFFECTION_MILESTONES = [20, 40, 60, 80, 100];
-const AFFECTION_REWARDS    = [15, 25, 40, 60, 100];
+const AFFECTION_REWARDS    = [30, 60, 100, 160, 250];
+
+// 超過2件時裝的角色，滿好感度可獲得的指定時裝
+const AFFECTION_COSTUME_REWARDS = {
+  1:'c01103', 2:'c02103', 3:'c03105', 4:'c04105', 5:'c05103',
+  6:'c06108', 7:'c07103', 8:'c08103', 11:'c11103', 12:'c12106',
+  14:'c14103', 16:'c16108', 17:'c17108', 19:'c19103', 20:'c20108',
+  21:'c21103', 22:'c22107', 24:'c24108', 25:'c25108', 29:'c29108', 30:'c30103',
+};
 
 function getAffection(charId) { return gs.affection[charId] || 0; }
 
@@ -2598,8 +2694,23 @@ function addAffection(charId, amount) {
   gs.affection[charId] = next;
   AFFECTION_MILESTONES.forEach((m, i) => {
     if (prev < m && next >= m) {
-      gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i];
-      showToast(`💕 好感度里程碑！+${AFFECTION_REWARDS[i]} 💎`);
+      if (m === 100) {
+        const coId = AFFECTION_COSTUME_REWARDS[charId];
+        if (coId && !gs.costumes[coId]) {
+          if (!gs.costumes) gs.costumes = {};
+          gs.costumes[coId] = true;
+          const ch = getChar(charId);
+          const coList = COSTUMES[charId] || [];
+          const co = coList.find(x => x.id === coId);
+          showToast(`💞 好感度滿！獲得 ${ch?.name}「${co?.name || coId}」時裝！`);
+        } else {
+          gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i];
+          showToast(`💕 好感度里程碑！+${AFFECTION_REWARDS[i]} 💎`);
+        }
+      } else {
+        gs.diamonds = (gs.diamonds || 0) + AFFECTION_REWARDS[i];
+        showToast(`💕 好感度里程碑！+${AFFECTION_REWARDS[i]} 💎`);
+      }
     }
   });
 }
@@ -2644,22 +2755,41 @@ function getGachaPool() {
   return pool;
 }
 
+const SSR_CHAR_IDS = CHARACTERS.filter(c => c.rarity === 'SSR').map(c => c.id);
+
+function allAffectionFull() {
+  return SSR_CHAR_IDS.every(id => getAffection(id) >= 100);
+}
+
 function doPull(count) {
   const SINGLE_COST = 80, TEN_COST = 800;
   const cost = count === 1 ? SINGLE_COST : TEN_COST;
   if ((gs.diamonds || 0) < cost) { showToast('💎 鑽石不足！'); return; }
   const pool = getGachaPool();
-  if (pool.length === 0) { showToast('🎉 所有時裝已收集完畢！'); return; }
+  const costumesDone = pool.length === 0;
+  if (costumesDone && allAffectionFull()) { showToast('🎉 所有時裝與好感度均已達成！'); return; }
   gs.diamonds -= cost;
+  if (!gs.affectionItems) gs.affectionItems = {};
   const results = [];
+  let affItemsGained = {};
   for (let i = 0; i < count; i++) {
+    // 時裝全滿時每抽都只給好感道具
+    if (costumesDone) {
+      const eligible = SSR_CHAR_IDS.filter(id => getAffection(id) < 100);
+      if (eligible.length > 0) {
+        const cid = eligible[Math.floor(Math.random() * eligible.length)];
+        gs.affectionItems[cid] = (gs.affectionItems[cid] || 0) + 1;
+        affItemsGained[cid] = (affItemsGained[cid] || 0) + 1;
+      }
+      continue;
+    }
     gs.gacha.pity++;
     let item;
     if (gs.gacha.pity >= 10 || pool.length === 1) {
       item = pool[Math.floor(Math.random() * pool.length)];
       gs.gacha.pity = 0;
     } else {
-      if (Math.random() < 0.15 || i === count - 1 && results.length === 0) {
+      if (Math.random() < 0.15) {
         item = pool[Math.floor(Math.random() * pool.length)];
       } else {
         item = null;
@@ -2670,21 +2800,27 @@ function doPull(count) {
       results.push(item);
       const idx = pool.indexOf(item);
       if (idx > -1) pool.splice(idx, 1);
+    } else {
+      // 沒中獎：給隨機SSR角色好感度道具（排除好感度已滿的角色）
+      const eligible = SSR_CHAR_IDS.filter(id => getAffection(id) < 100);
+      const pool2 = eligible.length > 0 ? eligible : SSR_CHAR_IDS;
+      const cid = pool2[Math.floor(Math.random() * pool2.length)];
+      gs.affectionItems[cid] = (gs.affectionItems[cid] || 0) + 1;
+      affItemsGained[cid] = (affItemsGained[cid] || 0) + 1;
     }
   }
   if (!gs.gacha.history) gs.gacha.history = [];
   gs.gacha.history.unshift(...results.map(r => r.co.id));
   if (gs.gacha.history.length > 50) gs.gacha.history.length = 50;
   saveGame();
-  renderGachaResult(results, count);
+  renderGachaResult(results, count, affItemsGained);
 }
 
-function renderGachaResult(results, pullCount) {
+function renderGachaResult(results, pullCount, affItemsGained) {
   const wrap = document.getElementById('gacha-result');
-  if (results.length === 0) {
-    wrap.innerHTML = `<div style="color:#aaa;text-align:center;padding:20px">本次未獲得時裝<br><span style="font-size:12px">再接再厲！</span></div>`;
-  } else {
-    wrap.innerHTML = results.map(r => {
+  let html = '';
+  if (results.length > 0) {
+    html += results.map(r => {
       const c = getChar(r.charId);
       const imgSrc = heroImgPath(r.charId, false, r.co.suffix);
       return `<div class="gacha-card">
@@ -2694,6 +2830,20 @@ function renderGachaResult(results, pullCount) {
       </div>`;
     }).join('');
   }
+  const affKeys = Object.keys(affItemsGained || {});
+  if (affKeys.length > 0) {
+    const affLines = affKeys.map(cid => {
+      const c = getChar(parseInt(cid));
+      return `${c?.name || cid} × ${affItemsGained[cid]}`;
+    }).join('、');
+    html += `<div style="width:100%;text-align:center;padding:10px 0;color:#f48fb1;font-size:13px">
+      💕 好感度道具：${affLines}
+    </div>`;
+  }
+  if (!html) {
+    html = `<div style="color:#aaa;text-align:center;padding:20px">本次未獲得時裝<br><span style="font-size:12px">再接再厲！</span></div>`;
+  }
+  wrap.innerHTML = html;
   renderGachaMain();
 }
 
@@ -2702,9 +2852,18 @@ function renderGachaMain() {
   if (d) d.textContent = gs.diamonds || 0;
   const pool = getGachaPool();
   const remaining = document.getElementById('gacha-remaining');
-  if (remaining) remaining.textContent = `剩餘 ${pool.length} 件時裝待收集`;
+  if (remaining) {
+    if (pool.length === 0 && allAffectionFull()) {
+      remaining.textContent = '🎉 所有時裝與好感度均已達成！';
+    } else if (pool.length === 0) {
+      const fullCount = SSR_CHAR_IDS.filter(id => getAffection(id) >= 100).length;
+      remaining.textContent = `✅ 時裝全收集！好感度 ${fullCount} / ${SSR_CHAR_IDS.length} 滿`;
+    } else {
+      remaining.textContent = `剩餘 ${pool.length} 件時裝待收集`;
+    }
+  }
   const pityEl = document.getElementById('gacha-pity');
-  if (pityEl) pityEl.textContent = `保底進度 ${gs.gacha?.pity||0} / 10`;
+  if (pityEl) pityEl.textContent = pool.length > 0 ? `保底進度 ${gs.gacha?.pity||0} / 10` : '💕 好感度道具模式';
 }
 
 // ══════════════════════════════════════════
