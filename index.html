@@ -3595,10 +3595,12 @@ function getTimeRating(secs, kanaCount) {
 //  抽卡系統
 // ══════════════════════════════════════════
 function getGachaPool() {
+  const affRewardIds = new Set(Object.values(AFFECTION_COSTUME_REWARDS));
   const pool = [];
   CHARACTERS.forEach(c => {
     if (c.rarity !== 'SSR') return;
     (COSTUMES[c.id] || []).forEach(co => {
+      if (affRewardIds.has(co.id)) return;
       if (!isCostumeUnlocked(c.id, co.id)) pool.push({ charId: c.id, co });
     });
   });
