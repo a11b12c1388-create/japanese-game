@@ -943,6 +943,7 @@
     <div class="ch-gameover-title">💀 挑戰結束</div>
     <div class="ch-gameover-score" id="endless-final-score">得分：0</div>
     <div class="ch-gameover-sub" id="endless-final-diamonds">獲得 💎 0</div>
+    <div class="ch-gameover-sub" id="endless-final-exp">獲得 ✨ 0 EXP</div>
     <div class="ch-gameover-btns">
       <button class="btn btn-gold" style="max-width:140px;min-height:44px" onclick="startEndless()">再挑戰</button>
       <button class="btn btn-blue" style="max-width:140px;min-height:44px" onclick="showScreen('stages')">選關卡</button>
@@ -3358,7 +3359,7 @@ const ENDLESS_KANA_POOL = (() => {
   return [...base, ...daku, ...youon];
 })();
 
-let endless = { score:0, combo:0, multiplier:1, running:false, currentKana:null, queue:[] };
+let endless = { score:0, combo:0, multiplier:1, running:false, currentKana:null, queue:[], totalCorrect:0, totalDiamonds:0, totalExp:0 };
 
 function refillEndlessQueue() {
   // 洗牌全部假名，確保每輪每個都出現一次才重複
@@ -3367,7 +3368,7 @@ function refillEndlessQueue() {
 
 function startEndless() {
   showScreen('endless');
-  endless = { score:0, combo:0, multiplier:1, running:true, currentKana:null, queue:[] };
+  endless = { score:0, combo:0, multiplier:1, running:true, currentKana:null, queue:[], totalCorrect:0, totalDiamonds:0, totalExp:0 };
   refillEndlessQueue();
   document.getElementById('endless-gameover').classList.remove('show');
   document.getElementById('endless-best-disp').textContent = '最高 ' + (gs.endlessBest || 0);
@@ -3404,6 +3405,14 @@ function pickEndless(romaji) {
     endless.combo++;
     endless.multiplier = Math.min(1 + Math.floor(endless.combo / 5), 5);
     endless.score += 10 * endless.multiplier;
+    // 答對第n題：鑽石 = 2^(n-1)，上限1024；EXP同樣倍增
+    endless.totalCorrect++;
+    const reward = Math.min(Math.pow(2, endless.totalCorrect - 1), 1024);
+    endless.totalDiamonds += reward;
+    endless.totalExp += reward;
+    gs.diamonds = (gs.diamonds || 0) + reward;
+    if (gs.activeCharId) addExp(gs.activeCharId, reward);
+    saveGame();
     // highlight correct
     btns.forEach(b => { if (b.textContent === romaji) b.classList.add('correct'); });
     setTimeout(() => nextEndlessQuestion(), 350);
@@ -3426,14 +3435,13 @@ function updateEndlessHUD() {
 function endEndless() {
   const score = endless.score;
   if (score > (gs.endlessBest || 0)) gs.endlessBest = score;
-  const diamonds = Math.min(Math.floor(score / 100), 500);
-  gs.diamonds = (gs.diamonds || 0) + diamonds;
   addBattlePassPts(Math.floor(score / 10));
   saveGame();
   updateEndlessHUD();
   document.getElementById('endless-best-disp').textContent = '最高 ' + gs.endlessBest;
-  document.getElementById('endless-final-score').textContent = `得分：${score}`;
-  document.getElementById('endless-final-diamonds').textContent = `獲得 💎 ${diamonds}`;
+  document.getElementById('endless-final-score').textContent = `得分：${score}　答對：${endless.totalCorrect} 題`;
+  document.getElementById('endless-final-diamonds').textContent = `獲得 💎 ${endless.totalDiamonds}`;
+  document.getElementById('endless-final-exp').textContent = `獲得 ✨ ${endless.totalExp} EXP`;
   document.getElementById('endless-gameover').classList.add('show');
 }
 
