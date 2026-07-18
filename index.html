@@ -524,6 +524,9 @@
     <div class="home-side-btn" onclick="showScreen('battlepass')">
       <span class="home-side-icon">🎖️</span><span class="home-side-label">戰令</span>
     </div>
+    <div class="home-side-btn" onclick="openSaveCodeModal()">
+      <span class="home-side-icon">💾</span><span class="home-side-label">存檔</span>
+    </div>
   </div>
   <!-- 底部主導航 -->
   <div class="home-bottom-nav">
@@ -948,6 +951,24 @@
       <button class="btn btn-gold" style="max-width:140px;min-height:44px" onclick="startEndless()">再挑戰</button>
       <button class="btn btn-blue" style="max-width:140px;min-height:44px" onclick="showScreen('stages')">選關卡</button>
     </div>
+  </div>
+</div>
+
+<!-- 存檔碼 Modal -->
+<div class="modal-overlay" id="modal-savecode" onclick="closeSaveCodeModal()" style="display:none;z-index:9999">
+  <div class="modal-card" style="max-width:360px;padding:24px 20px;gap:14px" onclick="event.stopPropagation()">
+    <div style="font-size:18px;font-weight:700;color:#f6d365;text-align:center">💾 存檔碼</div>
+    <!-- 匯出 -->
+    <div style="font-size:13px;color:#ccc;margin-bottom:2px">📤 匯出存檔</div>
+    <textarea id="savecode-export" readonly
+      style="width:100%;height:80px;background:#1a1a2e;color:#a8e063;border:1px solid #444;border-radius:8px;padding:8px;font-size:11px;resize:none;word-break:break-all;box-sizing:border-box"></textarea>
+    <button class="btn btn-gold" style="min-height:40px" onclick="copySaveCode()">📋 複製存檔碼</button>
+    <!-- 匯入 -->
+    <div style="font-size:13px;color:#ccc;margin-top:6px;margin-bottom:2px">📥 匯入存檔</div>
+    <textarea id="savecode-import" placeholder="貼上存檔碼…"
+      style="width:100%;height:80px;background:#1a1a2e;color:#fff;border:1px solid #444;border-radius:8px;padding:8px;font-size:11px;resize:none;word-break:break-all;box-sizing:border-box"></textarea>
+    <button class="btn btn-blue" style="min-height:40px" onclick="importSaveCode()">✅ 載入存檔</button>
+    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeSaveCodeModal()">關閉</button>
   </div>
 </div>
 
@@ -1914,6 +1935,43 @@ function closeVideoOverlay() {
 function saveGame() {
   localStorage.setItem('hiragana_quest', JSON.stringify(gs));
 }
+
+// ── 存檔碼 ──────────────────────────────────
+function openSaveCodeModal() {
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(gs))));
+  document.getElementById('savecode-export').value = code;
+  document.getElementById('savecode-import').value = '';
+  document.getElementById('modal-savecode').style.display = 'flex';
+}
+function closeSaveCodeModal() {
+  document.getElementById('modal-savecode').style.display = 'none';
+}
+function copySaveCode() {
+  const ta = document.getElementById('savecode-export');
+  ta.select();
+  try {
+    navigator.clipboard.writeText(ta.value).then(() => showToast('📋 已複製存檔碼！'));
+  } catch(e) {
+    document.execCommand('copy');
+    showToast('📋 已複製存檔碼！');
+  }
+}
+function importSaveCode() {
+  const raw = document.getElementById('savecode-import').value.trim();
+  if (!raw) { showToast('⚠️ 請先貼上存檔碼'); return; }
+  try {
+    const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    gs = parsed;
+    saveGame();
+    closeSaveCodeModal();
+    showToast('✅ 存檔載入成功，重新整理中…');
+    setTimeout(() => location.reload(), 1200);
+  } catch(e) {
+    showToast('❌ 存檔碼無效，請確認是否完整複製');
+  }
+}
+// ────────────────────────────────────────────
+
 function loadGame() {
   const data = localStorage.getItem('hiragana_quest');
   if (data) {
