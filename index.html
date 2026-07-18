@@ -558,8 +558,18 @@
     <h2 style="margin:0;flex:1;font-size:clamp(16px,4.5vw,20px)">💎 影片商店</h2>
     <div style="font-size:16px;font-weight:bold;color:#64dfff;flex-shrink:0">💎 <span id="shop-diamonds">0</span></div>
   </div>
-  <!-- 說明 -->
-  <div style="font-size:12px;color:#aaa;width:100%;padding:8px 16px;flex-shrink:0">通關關卡獲得鑽石，解鎖限定影片</div>
+  <!-- 分頁 Tab -->
+  <div style="display:flex;gap:0;width:100%;flex-shrink:0;border-bottom:1px solid #ffffff18">
+    <button id="shop-tab-rgu" onclick="switchShopTab('rgu')"
+      style="flex:1;padding:10px 0;font-size:13px;font-weight:bold;background:#ffffff18;color:#64dfff;border:none;cursor:pointer;touch-action:manipulation">
+      🎬 HV 系列
+    </button>
+    <button id="shop-tab-avg" onclick="switchShopTab('avg')"
+      style="flex:1;padding:10px 0;font-size:13px;font-weight:bold;background:transparent;color:#aaa;border:none;cursor:pointer;touch-action:manipulation">
+      🎭 AVG 系列
+    </button>
+  </div>
+  <div style="font-size:12px;color:#aaa;width:100%;padding:6px 16px;flex-shrink:0" id="shop-tab-desc">通關關卡獲得鑽石，解鎖限定影片</div>
   <!-- 影片網格（可捲動） -->
   <div id="shop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;width:100%;padding:0 16px 24px;overflow-y:auto;flex:1"></div>
 </div>
@@ -1825,31 +1835,72 @@ function renderQuests() {
 //  💎 影片商店
 // ══════════════════════════════════════════
 const VIDEO_BASE_RGU = 'hotUpdate_decrypted/Video/RGU_HV/';
+const VIDEO_BASE_AVG = 'hotUpdate_decrypted/Video/AVG/';
 const RGU_VIDEO_IDS = [
   '001','002','003','004','005','006','007','008','009','010',
   '011','012','013','014','015','016','017','018','019','020',
   '021','022','023','024','025','026','027','028','029','030',
   '031','032','033','034','035','036','037','038','039','040',
   '041','042','043','044','045','046','047','048','049','050',
-  '051','052','053','060','061',
+  '051','052','053','054','055','056','057','058','059',
+  '060','061','062','063',
+];
+const AVG_VIDEO_IDS = [
+  '001','002','003','004','005','006','007','008','009','010',
+  '011','012','013','014','015','016','017','018','019','020',
+  '021','022','023','024',
 ];
 
-function getVideoPrice(vid) {
+let _shopTab = 'rgu'; // 'rgu' | 'avg'
+
+function switchShopTab(tab) {
+  _shopTab = tab;
+  const rguBtn = document.getElementById('shop-tab-rgu');
+  const avgBtn = document.getElementById('shop-tab-avg');
+  if (rguBtn) {
+    rguBtn.style.background = tab === 'rgu' ? '#ffffff18' : 'transparent';
+    rguBtn.style.color      = tab === 'rgu' ? '#64dfff' : '#aaa';
+    avgBtn.style.background = tab === 'avg' ? '#ffffff18' : 'transparent';
+    avgBtn.style.color      = tab === 'avg' ? '#64dfff' : '#aaa';
+  }
+  const desc = document.getElementById('shop-tab-desc');
+  if (desc) desc.textContent = tab === 'rgu' ? '通關關卡獲得鑽石，解鎖限定影片' : 'AVG 劇情影片，解鎖後永久觀看';
+  renderShopGrid();
+}
+
+function getVideoPrice(vid, type) {
   const n = parseInt(vid);
+  if (type === 'avg') {
+    if (n <= 8)  return 40;
+    if (n <= 16) return 60;
+    return 80;
+  }
+  // rgu
   if (n <= 10) return 30;
   if (n <= 30) return 50;
   if (n <= 53) return 80;
-  return 100; // 060,061
+  return 100;
 }
 
 function renderShop() {
   document.getElementById('shop-diamonds').textContent = gs.diamonds || 0;
+  renderShopGrid();
+}
+
+function renderShopGrid() {
   const grid = document.getElementById('shop-grid');
-  grid.innerHTML = RGU_VIDEO_IDS.map(vid => {
-    const key = 'rgu_' + vid;
+  const isAvg = _shopTab === 'avg';
+  const ids   = isAvg ? AVG_VIDEO_IDS : RGU_VIDEO_IDS;
+  const base  = isAvg ? VIDEO_BASE_AVG : VIDEO_BASE_RGU;
+  const prefix = isAvg ? 'AVG_V_' : 'RGU_HV_';
+  const keyPfx = isAvg ? 'avg_' : 'rgu_';
+  const label  = isAvg ? 'AVG No.' : 'No.';
+
+  grid.innerHTML = ids.map(vid => {
+    const key = keyPfx + vid;
     const unlocked = !!(gs.unlockedVideos && gs.unlockedVideos[key]);
-    const price = getVideoPrice(vid);
-    const src = VIDEO_BASE_RGU + 'RGU_HV_' + vid + '.mp4';
+    const price = getVideoPrice(vid, _shopTab);
+    const src = base + prefix + vid + '.mp4';
     const canAfford = (gs.diamonds || 0) >= price;
     if (unlocked) {
       return `<div class="shop-video-card unlocked" onclick="playVideo('${src}')">
@@ -1858,18 +1909,18 @@ function renderShop() {
           <div class="play-icon">▶️</div>
         </div>
         <div class="shop-video-info">
-          <div class="shop-video-id">No.${vid}</div>
+          <div class="shop-video-id">${label}${vid}</div>
           <div class="shop-video-owned">✅ 已解鎖</div>
         </div>
       </div>`;
     } else {
-      return `<div class="shop-video-card locked" onclick="openShopPreview('${vid}')">
+      return `<div class="shop-video-card locked" onclick="openShopPreview('${vid}','${_shopTab}')">
         <div class="shop-video-thumb-wrap" style="background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px">
           <div style="font-size:32px">🔒</div>
           <div style="font-size:10px;color:#666">點擊預覽</div>
         </div>
         <div class="shop-video-info">
-          <div class="shop-video-id">No.${vid}</div>
+          <div class="shop-video-id">${label}${vid}</div>
           <div class="shop-video-price" style="color:${canAfford?'#64dfff':'#888'}">💎 ${price}</div>
         </div>
       </div>`;
@@ -1878,15 +1929,21 @@ function renderShop() {
 }
 
 let _previewVid = null;
+let _previewType = 'rgu';
 
-function openShopPreview(vid) {
-  _previewVid = vid;
-  const src = VIDEO_BASE_RGU + 'RGU_HV_' + vid + '.mp4';
-  const price = getVideoPrice(vid);
+function openShopPreview(vid, type) {
+  _previewVid  = vid;
+  _previewType = type || 'rgu';
+  const isAvg  = _previewType === 'avg';
+  const base   = isAvg ? VIDEO_BASE_AVG : VIDEO_BASE_RGU;
+  const prefix = isAvg ? 'AVG_V_' : 'RGU_HV_';
+  const label  = isAvg ? 'AVG No.' : 'No.';
+  const src    = base + prefix + vid + '.mp4';
+  const price  = getVideoPrice(vid, _previewType);
   const canAfford = (gs.diamonds || 0) >= price;
   const overlay = document.getElementById('shop-preview-overlay');
   const video = document.getElementById('preview-video');
-  document.getElementById('preview-vid-label').textContent = 'No.' + vid;
+  document.getElementById('preview-vid-label').textContent = label + vid;
   document.getElementById('preview-status-text').textContent =
     canAfford ? `需要 💎 ${price}（持有 💎 ${gs.diamonds}）` : `💎 不足，需要 ${price}（持有 ${gs.diamonds}）`;
   const buyBtn = document.getElementById('preview-buy-btn');
@@ -1897,13 +1954,12 @@ function openShopPreview(vid) {
   video.load();
   video.play().catch(()=>{});
   overlay.style.display = 'flex';
-  // 5秒後暫停並顯示提示
   clearTimeout(window._previewTimer);
   window._previewTimer = setTimeout(() => {
     video.pause();
     const statusEl = document.getElementById('preview-status-text');
     if (statusEl && _previewVid) {
-      const p = getVideoPrice(_previewVid);
+      const p = getVideoPrice(_previewVid, _previewType);
       const can = (gs.diamonds||0) >= p;
       statusEl.innerHTML = `<span style="color:#ffd700">⏱️ 試看結束</span>　${can ? `💎 ${p} 即可解鎖完整版` : `需 💎 ${p}（持有 ${gs.diamonds}）`}`;
     }
@@ -1923,16 +1979,18 @@ function closeShopPreview() {
 function buyVideoFromPreview() {
   if (!_previewVid) return;
   const vid = _previewVid;
-  const price = getVideoPrice(vid);
+  const type = _previewType || 'rgu';
+  const price = getVideoPrice(vid, type);
   if ((gs.diamonds || 0) < price) { showToast('💎 鑽石不足！'); return; }
   closeShopPreview();
-  buyVideo(vid);
+  buyVideo(vid, type);
 }
 
-function buyVideo(vid) {
-  const key = 'rgu_' + vid;
+function buyVideo(vid, type) {
+  type = type || 'rgu';
+  const key = type + '_' + vid;
   if (gs.unlockedVideos && gs.unlockedVideos[key]) return;
-  const price = getVideoPrice(vid);
+  const price = getVideoPrice(vid, type);
   if ((gs.diamonds || 0) < price) {
     showToast('💎 鑽石不足！繼續通關關卡獲得更多鑽石');
     return;
@@ -1941,7 +1999,8 @@ function buyVideo(vid) {
   if (!gs.unlockedVideos) gs.unlockedVideos = {};
   gs.unlockedVideos[key] = true;
   saveGame();
-  showToast(`🎉 影片 No.${vid} 已解鎖！`);
+  const label = type === 'avg' ? 'AVG No.' : 'No.';
+  showToast(`🎉 影片 ${label}${vid} 已解鎖！`);
   renderShop();
 }
 
