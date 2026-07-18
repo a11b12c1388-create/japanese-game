@@ -954,6 +954,26 @@
   </div>
 </div>
 
+<!-- 造型自選券 Modal（第1步：選角色） -->
+<div class="modal-overlay" id="modal-costume-ticket-step1" onclick="closeCostumeTicketModal()" style="display:none;z-index:9999">
+  <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:88vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div style="font-size:17px;font-weight:700;color:#ce93d8;text-align:center">🎨 造型自選券</div>
+    <div style="font-size:12px;color:#aaa;text-align:center">第 1 步：選擇角色</div>
+    <div id="ct-char-list" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
+    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeCostumeTicketModal()">取消</button>
+  </div>
+</div>
+
+<!-- 造型自選券 Modal（第2步：選造型） -->
+<div class="modal-overlay" id="modal-costume-ticket-step2" onclick="closeCostumeTicketStep2()" style="display:none;z-index:10000">
+  <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:88vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div style="font-size:17px;font-weight:700;color:#ce93d8;text-align:center">🎨 選擇造型</div>
+    <div id="ct-step2-charname" style="font-size:12px;color:#aaa;text-align:center"></div>
+    <div id="ct-costume-list" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
+    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeCostumeTicketStep2()">← 返回</button>
+  </div>
+</div>
+
 <!-- 角色滿等券選角 Modal -->
 <div class="modal-overlay" id="modal-maxlv" onclick="closeMaxLvTicketModal()" style="display:none;z-index:9999">
   <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:85vh;overflow-y:auto" onclick="event.stopPropagation()">
@@ -2019,7 +2039,7 @@ function loadGame() {
       const startUnlocked = c.id === 1 || c.rarity === 'SR';
       gs.chars[c.id] = { lv: 1, exp: 0, unlocked: startUnlocked };
     });
-    gs.inventory = { maxlv_ticket: 5 };   // 首次登入贈送 5 張角色滿等券
+    gs.inventory = { maxlv_ticket: 5, costume_ticket: 10 };   // 首次登入贈送
     gs._isNewPlayer = true;
     saveGame();
   }
@@ -3017,7 +3037,8 @@ function renderReviewSection() {
 //  道具定義
 // ══════════════════════════════════════════
 const ITEMS = {
-  maxlv_ticket:{ name:'角色滿等券', icon:'⭐', desc:'選擇一隻角色，直接升到 Lv.20 MAX',  color:'#ffd700' },
+  maxlv_ticket:  { name:'角色滿等券', icon:'⭐', desc:'選擇一隻角色，直接升到 Lv.20 MAX',  color:'#ffd700' },
+  costume_ticket:{ name:'造型自選券', icon:'🎨', desc:'自由選擇並永久解鎖任意一套造型',    color:'#ce93d8' },
   exp2x:    { name:'EXP加倍券',    icon:'📚', desc:'下一場關卡 EXP 獲得量×2',           color:'#81c784' },
   diamond_s:{ name:'小鑽石禮包',   icon:'💎', desc:'立即獲得 800 💎',                   color:'#64dfff' },
   diamond_m:{ name:'中鑽石禮包',   icon:'💎', desc:'立即獲得 2400 💎',                  color:'#64dfff' },
@@ -3037,6 +3058,9 @@ function useItem(id) {
   if (!item) return;
   if (id === 'maxlv_ticket') {
     openMaxLvTicketModal();
+    return;
+  } else if (id === 'costume_ticket') {
+    openCostumeTicketModal();
     return;
   } else if (id === 'exp2x') {
     gs._exp2xNext = true;
@@ -3108,6 +3132,78 @@ function applyMaxLvTicket(charId) {
   renderInventory();
   renderHome();
 }
+
+// ── 造型自選券 ──────────────────────────────
+function openCostumeTicketModal() {
+  const list = document.getElementById('ct-char-list');
+  // 只列出有未解鎖SSR造型的角色
+  const eligible = CHARACTERS.filter(c => {
+    if (c.rarity !== 'SSR') return false;
+    const costumes = COSTUMES[c.id] || [];
+    return costumes.some(co => !isCostumeUnlocked(c.id, co.id));
+  });
+  if (eligible.length === 0) {
+    showToast('🎨 所有造型已解鎖！');
+    return;
+  }
+  const elColor = {光:'#ffd700',暗:'#ce93d8',火:'#ff7043',水:'#64dfff',風:'#a8e063',雷:'#ffb300'};
+  list.innerHTML = eligible.map(c => {
+    const locked = (COSTUMES[c.id] || []).filter(co => !isCostumeUnlocked(c.id, co.id)).length;
+    const ec = elColor[c.el] || '#aaa';
+    return `<button onclick="openCostumeTicketStep2(${c.id})"
+      style="display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid #ce93d855;border-radius:10px;padding:10px 12px;cursor:pointer;width:100%;text-align:left">
+      <div style="font-size:20px">👤</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:bold;color:#fff">${c.name}</div>
+        <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${ec}">${c.el}</span></div>
+      </div>
+      <div style="font-size:11px;color:#ce93d8">${locked} 套可選</div>
+    </button>`;
+  }).join('');
+  document.getElementById('modal-costume-ticket-step1').style.display = 'flex';
+}
+function closeCostumeTicketModal() {
+  document.getElementById('modal-costume-ticket-step1').style.display = 'none';
+}
+function openCostumeTicketStep2(charId) {
+  const c = CHARACTERS.find(x => x.id === charId);
+  if (!c) return;
+  document.getElementById('ct-step2-charname').textContent = `第 2 步：為「${c.name}」選擇造型`;
+  const costumes = COSTUMES[charId] || [];
+  const locked = costumes.filter(co => !isCostumeUnlocked(charId, co.id));
+  const seriesName = s => COSTUME_SERIES[s] || s;
+  document.getElementById('ct-costume-list').innerHTML = locked.map(co =>
+    `<button onclick="applyCostumeTicket(${charId},'${co.id}')"
+      style="display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid #ce93d855;border-radius:10px;padding:10px 12px;cursor:pointer;width:100%;text-align:left">
+      <div style="font-size:22px">🎨</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:bold;color:#ce93d8">${co.name}</div>
+        <div style="font-size:11px;color:#aaa">${seriesName(co.suffix)} 系列</div>
+      </div>
+    </button>`
+  ).join('');
+  document.getElementById('modal-costume-ticket-step2').style.display = 'flex';
+}
+function closeCostumeTicketStep2() {
+  document.getElementById('modal-costume-ticket-step2').style.display = 'none';
+}
+function applyCostumeTicket(charId, costumeId) {
+  if ((gs.inventory['costume_ticket'] || 0) <= 0) return;
+  const c = CHARACTERS.find(x => x.id === charId);
+  const costumes = COSTUMES[charId] || [];
+  const co = costumes.find(x => x.id === costumeId);
+  if (!c || !co) return;
+  if (!gs.costumes) gs.costumes = {};
+  gs.costumes[costumeId] = true;
+  gs.inventory['costume_ticket']--;
+  saveGame();
+  closeCostumeTicketStep2();
+  closeCostumeTicketModal();
+  showToast(`🎨 已解鎖「${co.name}」！`);
+  renderInventory();
+  renderHome();
+}
+// ────────────────────────────────────────────
 
 function totalInventoryCount() {
   if (!gs.inventory) return 0;
@@ -3958,10 +4054,11 @@ function showNewPlayerWelcome() {
       <div style="font-size:36px">🎉</div>
       <div style="font-size:18px;font-weight:700;color:#ffd700">歡迎來到假名道場！</div>
       <div style="font-size:13px;color:#ccc;line-height:1.6">帳號已重製完成<br>以下為新手開局贈禮：</div>
-      <div style="background:#ffd70022;border:1px solid #ffd70055;border-radius:12px;padding:14px;font-size:15px;color:#ffd700;font-weight:bold">
-        ⭐ 角色滿等券 × 5
+      <div style="background:#ffd70022;border:1px solid #ffd70055;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:14px;color:#ffd700;font-weight:bold">⭐ 角色滿等券 × 5</div>
+        <div style="font-size:14px;color:#ce93d8;font-weight:bold">🎨 造型自選券 × 10</div>
       </div>
-      <div style="font-size:12px;color:#aaa">前往「背包」即可使用<br>每張可讓一隻角色直接升滿 Lv.20</div>
+      <div style="font-size:12px;color:#aaa">前往「背包」即可使用</div>
       <button onclick="this.closest('div[style*=fixed]').remove()" style="background:linear-gradient(135deg,#ffd700,#ff9800);color:#000;font-weight:bold;border:none;border-radius:20px;padding:12px 24px;font-size:15px;cursor:pointer;touch-action:manipulation">開始遊戲！</button>
     </div>`;
   document.body.appendChild(overlay);
