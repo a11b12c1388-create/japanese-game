@@ -354,7 +354,8 @@
 
   /* ── 時裝選擇器 ── */
   .costume-row { display: flex; flex-wrap: nowrap; gap: 8px; padding: 4px 0 8px;
-    width: 100%; max-width: 480px; overflow-x: auto; }
+    width: 100%; max-width: 480px; overflow-x: auto; scrollbar-width: none; }
+  .costume-row::-webkit-scrollbar { display: none; }
   .costume-card { flex-shrink: 0; width: 72px; display: flex; flex-direction: column;
     align-items: center; gap: 4px; cursor: pointer; touch-action: manipulation; }
   .costume-card .cos-thumb { width: 60px; height: 76px; border-radius: 8px; border: 2px solid #444;
