@@ -353,8 +353,8 @@
   .modal-btns .btn { max-width: 160px; font-size: 14px; min-height: 48px; }
 
   /* ── 時裝選擇器 ── */
-  .costume-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 8px;
-    width: 100%; max-width: 480px; }
+  .costume-row { display: flex; flex-wrap: nowrap; gap: 8px; padding: 4px 0 8px;
+    width: 100%; max-width: 480px; overflow-x: auto; }
   .costume-card { flex-shrink: 0; width: 72px; display: flex; flex-direction: column;
     align-items: center; gap: 4px; cursor: pointer; touch-action: manipulation; }
   .costume-card .cos-thumb { width: 60px; height: 76px; border-radius: 8px; border: 2px solid #444;
@@ -3375,6 +3375,71 @@ function startEndless() {
   nextEndlessQuestion();
 }
 
+// 常見混淆對照表：每個假名 → 初學者常搞錯的誘答選項（romaji字串陣列）
+const KANA_CONFUSABLES = {
+  // 形狀相似
+  'あ':['o','wa','ka'],   'お':['a','wo','ko'],
+  'い':['ri','ni','hi'],  'り':['i','ni','li'],
+  'う':['tsu','yu','wu'], 'つ':['u','tsu','su'],  // つ vs u 很多人混
+  'ぬ':['me','nu','ne'],  'め':['nu','ne','me'],
+  'は':['wa','ba','ha'],  'わ':['ha','wa','ba'],
+  'ほ':['ho','po','bo'],  'ぼ':['ho','po','bo'],
+  'へ':['he','be','pe'],  'べ':['he','be','pe'],
+  'ね':['ne','me','nu'],  'れ':['re','ne','le'],
+  'さ':['sa','za','se'],  'ざ':['za','sa','da'],
+  'し':['shi','si','chi','ji'], 'ち':['chi','tchi','shi','ji'],
+  'ふ':['fu','hu','pu'],
+  'ん':['n','m','nu','no'],
+  'を':['wo','o','ko'],
+  // 濁音混淆
+  'が':['ga','ka','ba'],  'か':['ka','ga','sa'],
+  'ぎ':['gi','ki','ji'],  'き':['ki','gi','chi'],
+  'ぐ':['gu','ku','bu'],  'く':['ku','gu','kyu'],
+  'げ':['ge','ke','be'],  'け':['ke','ge','se'],
+  'ご':['go','ko','bo'],  'こ':['ko','go','so'],
+  'ず':['zu','su','du'],  'す':['su','zu','tsu'],
+  'ぜ':['ze','se','de'],  'せ':['se','ze','she'],
+  'ぞ':['zo','so','do'],  'そ':['so','zo','tso'],
+  'だ':['da','za','ta'],  'た':['ta','da','na'],
+  'で':['de','ze','te'],  'て':['te','de','ne'],
+  'ど':['do','zo','to'],  'と':['to','do','no'],
+  'ば':['ba','ha','pa'],  'ぱ':['pa','ba','ha'],
+  'び':['bi','hi','pi'],  'ぴ':['pi','bi','hi'],
+  'ぶ':['bu','fu','pu'],  'ぷ':['pu','bu','fu'],
+  'ぼ':['bo','ho','po'],  'ぽ':['po','bo','ho'],
+  // 拗音混淆
+  'しゃ':['sha','sya','ja','cha'],   'じゃ':['ja','sha','jya','cha'],
+  'しゅ':['shu','syu','ju','chu'],   'じゅ':['ju','shu','jyu','chu'],
+  'しょ':['sho','syo','jo','cho'],   'じょ':['jo','sho','jyo','cho'],
+  'ちゃ':['cha','sha','tya','ja'],   'ちゅ':['chu','shu','tyu','ju'],
+  'ちょ':['cho','sho','tyo','jo'],
+  'きゃ':['kya','kia','gya','sha'], 'きゅ':['kyu','kiu','gyu','chu'],
+  'きょ':['kyo','kio','gyo','cho'],
+  'にゃ':['nya','nia','mya','nya'], 'にゅ':['nyu','niu','myu','ryu'],
+  'りゃ':['rya','ria','riya','lya'],'りゅ':['ryu','riu','nyu','lyu'],
+  'りょ':['ryo','rio','nyo','lyo'],
+};
+
+function getEndlessWrongChoices(correct, pool, count) {
+  const confusables = (KANA_CONFUSABLES[correct.h] || []).filter(r => r !== correct.r);
+  // 優先從誘答池中挑，再補全隨機
+  const confusedFromPool = pool.filter(k => confusables.includes(k.r) && k.r !== correct.r);
+  const randomWrong = shuffle(pool.filter(k => k.r !== correct.r && !confusables.includes(k.r)));
+  // 70% 機率優先放誘答 (若有)
+  const prioritize = Math.random() < 0.7;
+  let candidates = prioritize
+    ? [...shuffle(confusedFromPool), ...randomWrong]
+    : [...randomWrong, ...shuffle(confusedFromPool)];
+  // 去重
+  const seen = new Set();
+  const result = [];
+  for (const k of candidates) {
+    if (!seen.has(k.r)) { seen.add(k.r); result.push(k); }
+    if (result.length >= count) break;
+  }
+  return result;
+}
+
 function nextEndlessQuestion() {
   if (!endless.running) return;
   updateEndlessHUD();
@@ -3386,9 +3451,8 @@ function nextEndlessQuestion() {
   endless.currentKana = correct;
   document.getElementById('endless-kana').textContent = correct.h;
 
-  // Build 4 choices: 1 correct + 3 wrong（wrong 從剩餘佇列優先取，確保多樣性）
-  const wrongPool = pool.filter(k => k.r !== correct.r);
-  const wrongs = shuffle(wrongPool).slice(0, 3);
+  // 生成含誘答的錯誤選項
+  const wrongs = getEndlessWrongChoices(correct, pool, 3);
   const choices = shuffle([correct, ...wrongs]);
 
   const grid = document.getElementById('endless-choices');
@@ -3407,7 +3471,7 @@ function pickEndless(romaji) {
     endless.score += 10 * endless.multiplier;
     // 答對第n題：鑽石 = 2^(n-1)，上限1024；EXP同樣倍增
     endless.totalCorrect++;
-    const reward = Math.min(Math.pow(2, endless.totalCorrect - 1), 1024);
+    const reward = Math.min(Math.pow(2, endless.totalCorrect - 1), 50);
     endless.totalDiamonds += reward;
     endless.totalExp += reward;
     gs.diamonds = (gs.diamonds || 0) + reward;
