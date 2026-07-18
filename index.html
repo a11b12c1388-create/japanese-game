@@ -353,9 +353,8 @@
   .modal-btns .btn { max-width: 160px; font-size: 14px; min-height: 48px; }
 
   /* ── 時裝選擇器 ── */
-  .costume-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px;
-    width: 100%; max-width: 480px; scrollbar-width: none; -ms-overflow-style: none; }
-  .costume-row::-webkit-scrollbar { display: none; }
+  .costume-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 8px;
+    width: 100%; max-width: 480px; }
   .costume-card { flex-shrink: 0; width: 72px; display: flex; flex-direction: column;
     align-items: center; gap: 4px; cursor: pointer; touch-action: manipulation; }
   .costume-card .cos-thumb { width: 60px; height: 76px; border-radius: 8px; border: 2px solid #444;
