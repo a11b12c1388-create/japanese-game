@@ -954,6 +954,16 @@
   </div>
 </div>
 
+<!-- 角色滿等券選角 Modal -->
+<div class="modal-overlay" id="modal-maxlv" onclick="closeMaxLvTicketModal()" style="display:none;z-index:9999">
+  <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:85vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div style="font-size:17px;font-weight:700;color:#ffd700;text-align:center">⭐ 角色滿等券</div>
+    <div style="font-size:12px;color:#aaa;text-align:center">選擇一隻角色直接升到 Lv.20 MAX</div>
+    <div id="maxlv-char-list" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
+    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeMaxLvTicketModal()">取消</button>
+  </div>
+</div>
+
 <!-- 存檔碼 Modal -->
 <div class="modal-overlay" id="modal-savecode" onclick="closeSaveCodeModal()" style="display:none;z-index:9999">
   <div class="modal-card" style="max-width:360px;padding:24px 20px;gap:14px" onclick="event.stopPropagation()">
@@ -969,6 +979,8 @@
       style="width:100%;height:80px;background:#1a1a2e;color:#fff;border:1px solid #444;border-radius:8px;padding:8px;font-size:11px;resize:none;word-break:break-all;box-sizing:border-box"></textarea>
     <button class="btn btn-blue" style="min-height:40px" onclick="importSaveCode()">✅ 載入存檔</button>
     <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeSaveCodeModal()">關閉</button>
+    <hr style="border-color:#333;width:100%">
+    <button class="btn" style="min-height:36px;background:#4a1010;color:#ff6b6b;font-size:12px" onclick="confirmResetAccount()">🗑️ 重製帳號（清除所有資料）</button>
   </div>
 </div>
 
@@ -1970,6 +1982,13 @@ function importSaveCode() {
     showToast('❌ 存檔碼無效，請確認是否完整複製');
   }
 }
+function confirmResetAccount() {
+  if (!confirm('⚠️ 確定要重製帳號嗎？\n\n所有資料（角色、鑽石、時裝、進度）將完全清除，無法恢復！')) return;
+  if (!confirm('再次確認：真的要清除所有存檔資料嗎？')) return;
+  localStorage.removeItem('hiragana_quest');
+  showToast('帳號已重製，即將重新整理…');
+  setTimeout(() => location.reload(), 1200);
+}
 // ────────────────────────────────────────────
 
 function loadGame() {
@@ -1995,11 +2014,13 @@ function loadGame() {
     if (!gs.battlePass) gs.battlePass = { pts: 0, claimed: [] };
     if (gs.endlessBest === undefined) gs.endlessBest = 0;
   } else {
-    // 初始化
+    // 全新帳號初始化
     CHARACTERS.forEach(c => {
       const startUnlocked = c.id === 1 || c.rarity === 'SR';
       gs.chars[c.id] = { lv: 1, exp: 0, unlocked: startUnlocked };
     });
+    gs.inventory = { maxlv_ticket: 5 };   // 首次登入贈送 5 張角色滿等券
+    gs._isNewPlayer = true;
     saveGame();
   }
   // 補上：確保所有 SR 對舊存檔也解鎖
@@ -2996,6 +3017,7 @@ function renderReviewSection() {
 //  道具定義
 // ══════════════════════════════════════════
 const ITEMS = {
+  maxlv_ticket:{ name:'角色滿等券', icon:'⭐', desc:'選擇一隻角色，直接升到 Lv.20 MAX',  color:'#ffd700' },
   exp2x:    { name:'EXP加倍券',    icon:'📚', desc:'下一場關卡 EXP 獲得量×2',           color:'#81c784' },
   diamond_s:{ name:'小鑽石禮包',   icon:'💎', desc:'立即獲得 800 💎',                   color:'#64dfff' },
   diamond_m:{ name:'中鑽石禮包',   icon:'💎', desc:'立即獲得 2400 💎',                  color:'#64dfff' },
@@ -3013,7 +3035,10 @@ function useItem(id) {
   if (!gs.inventory || (gs.inventory[id] || 0) <= 0) return;
   const item = ITEMS[id];
   if (!item) return;
-  if (id === 'exp2x') {
+  if (id === 'maxlv_ticket') {
+    openMaxLvTicketModal();
+    return;
+  } else if (id === 'exp2x') {
     gs._exp2xNext = true;
     gs.inventory[id]--;
     showToast('📚 EXP加倍券已啟動！下一場生效');
@@ -3039,6 +3064,47 @@ function useItem(id) {
     showToast('🎫 保底券已啟動！下次抽卡必中');
   }
   saveGame();
+  renderInventory();
+  renderHome();
+}
+
+function openMaxLvTicketModal() {
+  const list = document.getElementById('maxlv-char-list');
+  list.innerHTML = CHARACTERS.map(c => {
+    const cs = gs.chars[c.id];
+    const lv = cs ? cs.lv : 1;
+    const isMax = lv >= MAX_LEVEL;
+    const locked = !cs || !cs.unlocked;
+    const elColor = {光:'#ffd700',暗:'#ce93d8',火:'#ff7043',水:'#64dfff',風:'#a8e063',雷:'#ffb300'}[c.el] || '#aaa';
+    return `<button onclick="applyMaxLvTicket(${c.id})" ${isMax ? 'disabled' : ''}
+      style="display:flex;align-items:center;gap:10px;background:${isMax?'#1a1a1a':'#ffffff0d'};border:1px solid ${isMax?'#333':'#ffffff22'};border-radius:10px;padding:10px 12px;cursor:${isMax?'default':'pointer'};opacity:${isMax?0.4:1};width:100%;text-align:left">
+      <div style="font-size:20px">${locked?'🔒':'👤'}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:bold;color:#fff">${c.name}</div>
+        <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${elColor}">${c.el}</span></div>
+      </div>
+      <div style="font-size:12px;color:${isMax?'#ffd700':'#a8e063'};font-weight:bold">${isMax?'MAX ✓':'Lv.'+lv+' → MAX'}</div>
+    </button>`;
+  }).join('');
+  document.getElementById('modal-maxlv').style.display = 'flex';
+}
+function closeMaxLvTicketModal() {
+  document.getElementById('modal-maxlv').style.display = 'none';
+}
+function applyMaxLvTicket(charId) {
+  if ((gs.inventory['maxlv_ticket'] || 0) <= 0) return;
+  const c = CHARACTERS.find(x => x.id === charId);
+  if (!c) return;
+  if (!gs.chars[charId]) gs.chars[charId] = { lv:1, exp:0, unlocked:true };
+  const cs = gs.chars[charId];
+  if (cs.lv >= MAX_LEVEL) { showToast('此角色已經是 MAX 等級'); return; }
+  cs.lv = MAX_LEVEL;
+  cs.exp = 0;
+  cs.unlocked = true;
+  gs.inventory['maxlv_ticket']--;
+  saveGame();
+  closeMaxLvTicketModal();
+  showToast(`⭐ ${c.name} 已升至 Lv.${MAX_LEVEL} MAX！`);
   renderInventory();
   renderHome();
 }
@@ -3876,6 +3942,30 @@ CHARACTERS.forEach(c => {
   }
 });
 saveGame();
+
+// 新玩家歡迎提示
+if (gs._isNewPlayer) {
+  gs._isNewPlayer = false;
+  saveGame();
+  setTimeout(() => showNewPlayerWelcome(), 800);
+}
+
+function showNewPlayerWelcome() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000a;z-index:99999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd70088;border-radius:20px;padding:28px 24px;max-width:320px;width:90%;text-align:center;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:36px">🎉</div>
+      <div style="font-size:18px;font-weight:700;color:#ffd700">歡迎來到假名道場！</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.6">帳號已重製完成<br>以下為新手開局贈禮：</div>
+      <div style="background:#ffd70022;border:1px solid #ffd70055;border-radius:12px;padding:14px;font-size:15px;color:#ffd700;font-weight:bold">
+        ⭐ 角色滿等券 × 5
+      </div>
+      <div style="font-size:12px;color:#aaa">前往「背包」即可使用<br>每張可讓一隻角色直接升滿 Lv.20</div>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:linear-gradient(135deg,#ffd700,#ff9800);color:#000;font-weight:bold;border:none;border-radius:20px;padding:12px 24px;font-size:15px;cursor:pointer;touch-action:manipulation">開始遊戲！</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
 </script>
 </body>
 </html>
