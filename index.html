@@ -3154,20 +3154,22 @@ function useItem(id) {
 
 function openMaxLvTicketModal() {
   const list = document.getElementById('maxlv-char-list');
+  const elColor = {光:'#ffd700',暗:'#ce93d8',火:'#ff7043',水:'#64dfff',風:'#a8e063',雷:'#ffb300'};
   list.innerHTML = CHARACTERS.map(c => {
     const cs = gs.chars[c.id];
     const lv = cs ? cs.lv : 1;
     const isMax = lv >= MAX_LEVEL;
     const locked = !cs || !cs.unlocked;
-    const elColor = {光:'#ffd700',暗:'#ce93d8',火:'#ff7043',水:'#64dfff',風:'#a8e063',雷:'#ffb300'}[c.el] || '#aaa';
+    const ec = elColor[c.el] || '#aaa';
+    const imgSrc = heroImgPath(c.id, false, null);
     return `<button onclick="applyMaxLvTicket(${c.id})" ${isMax ? 'disabled' : ''}
-      style="display:flex;align-items:center;gap:10px;background:${isMax?'#1a1a1a':'#ffffff0d'};border:1px solid ${isMax?'#333':'#ffffff22'};border-radius:10px;padding:10px 12px;cursor:${isMax?'default':'pointer'};opacity:${isMax?0.4:1};width:100%;text-align:left">
-      <div style="font-size:20px">${locked?'🔒':'👤'}</div>
-      <div style="flex:1">
+      style="display:flex;align-items:center;gap:10px;background:${isMax?'#1a1a1a':'#ffffff0d'};border:1px solid ${isMax?'#333':ec+'55'};border-radius:12px;padding:8px 12px;cursor:${isMax?'default':'pointer'};opacity:${isMax?0.4:1};width:100%;text-align:left;overflow:hidden">
+      <img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;flex-shrink:0;${locked?'filter:brightness(0.3)':''}" onerror="this.style.display='none'">
+      <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:bold;color:#fff">${c.name}</div>
-        <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${elColor}">${c.el}</span></div>
+        <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${ec}">${c.el}</span></div>
+        <div style="font-size:11px;color:${isMax?'#ffd700':'#a8e063'};font-weight:bold;margin-top:2px">${isMax?'MAX ✓':'Lv.'+lv+' → MAX'}</div>
       </div>
-      <div style="font-size:12px;color:${isMax?'#ffd700':'#a8e063'};font-weight:bold">${isMax?'MAX ✓':'Lv.'+lv+' → MAX'}</div>
     </button>`;
   }).join('');
   document.getElementById('modal-maxlv').style.display = 'flex';
@@ -3196,7 +3198,6 @@ function applyMaxLvTicket(charId) {
 // ── 造型自選券 ──────────────────────────────
 function openCostumeTicketModal() {
   const list = document.getElementById('ct-char-list');
-  // 只列出有未解鎖SSR造型的角色
   const eligible = CHARACTERS.filter(c => {
     if (c.rarity !== 'SSR') return false;
     const costumes = COSTUMES[c.id] || [];
@@ -3208,16 +3209,17 @@ function openCostumeTicketModal() {
   }
   const elColor = {光:'#ffd700',暗:'#ce93d8',火:'#ff7043',水:'#64dfff',風:'#a8e063',雷:'#ffb300'};
   list.innerHTML = eligible.map(c => {
-    const locked = (COSTUMES[c.id] || []).filter(co => !isCostumeUnlocked(c.id, co.id)).length;
+    const unlockedCount = (COSTUMES[c.id] || []).filter(co => !isCostumeUnlocked(c.id, co.id)).length;
     const ec = elColor[c.el] || '#aaa';
+    const imgSrc = heroImgPath(c.id, false, null);
     return `<button onclick="openCostumeTicketStep2(${c.id})"
-      style="display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid #ce93d855;border-radius:10px;padding:10px 12px;cursor:pointer;width:100%;text-align:left">
-      <div style="font-size:20px">👤</div>
-      <div style="flex:1">
+      style="display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid ${ec}55;border-radius:12px;padding:8px 12px;cursor:pointer;width:100%;text-align:left">
+      <img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'">
+      <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:bold;color:#fff">${c.name}</div>
         <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${ec}">${c.el}</span></div>
       </div>
-      <div style="font-size:11px;color:#ce93d8">${locked} 套可選</div>
+      <div style="font-size:12px;color:#ce93d8;font-weight:bold;flex-shrink:0">${unlockedCount} 套</div>
     </button>`;
   }).join('');
   document.getElementById('modal-costume-ticket-step1').style.display = 'flex';
@@ -3232,16 +3234,21 @@ function openCostumeTicketStep2(charId) {
   const costumes = COSTUMES[charId] || [];
   const locked = costumes.filter(co => !isCostumeUnlocked(charId, co.id));
   const seriesName = s => COSTUME_SERIES[s] || s;
-  document.getElementById('ct-costume-list').innerHTML = locked.map(co =>
-    `<button onclick="applyCostumeTicket(${charId},'${co.id}')"
-      style="display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid #ce93d855;border-radius:10px;padding:10px 12px;cursor:pointer;width:100%;text-align:left">
-      <div style="font-size:22px">🎨</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:bold;color:#ce93d8">${co.name}</div>
-        <div style="font-size:11px;color:#aaa">${seriesName(co.suffix)} 系列</div>
+  document.getElementById('ct-costume-list').innerHTML = locked.map(co => {
+    const imgSrc = heroImgPath(charId, false, co.suffix);
+    return `<button onclick="applyCostumeTicket(${charId},'${co.id}')"
+      style="display:flex;align-items:center;gap:12px;background:#ffffff0d;border:1px solid #ce93d855;border-radius:12px;padding:8px 12px;cursor:pointer;width:100%;text-align:left">
+      <div style="position:relative;flex-shrink:0">
+        <img src="${imgSrc}" style="width:60px;height:60px;object-fit:cover;object-position:top center;border-radius:8px;filter:grayscale(1) brightness(0.85)" onerror="this.style.display='none'">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px">🔒</div>
       </div>
-    </button>`
-  ).join('');
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:bold;color:#ce93d8">${co.name}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">${seriesName(co.suffix)} 系列</div>
+        <div style="font-size:10px;color:#666;margin-top:2px">點擊解鎖</div>
+      </div>
+    </button>`;
+  }).join('');
   document.getElementById('modal-costume-ticket-step2').style.display = 'flex';
 }
 function closeCostumeTicketStep2() {
