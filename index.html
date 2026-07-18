@@ -969,32 +969,44 @@
 </div>
 
 <!-- 造型自選券 Modal（第1步：選角色） -->
-<div class="modal-overlay" id="modal-costume-ticket-step1" onclick="closeCostumeTicketModal()" style="display:none;z-index:9999">
-  <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:88vh;overflow-y:auto" onclick="event.stopPropagation()">
-    <div style="font-size:17px;font-weight:700;color:#ce93d8;text-align:center">🎨 造型自選券</div>
-    <div style="font-size:12px;color:#aaa;text-align:center">第 1 步：選擇角色</div>
-    <div id="ct-char-list" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
-    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeCostumeTicketModal()">取消</button>
+<div id="modal-costume-ticket-step1" onclick="closeCostumeTicketModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:#000a;align-items:center;justify-content:center;padding:16px">
+  <div onclick="event.stopPropagation()" style="background:#1a1a2e;border:1px solid #ce93d855;border-radius:16px;width:100%;max-width:380px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:16px 16px 12px;flex-shrink:0;text-align:center">
+      <div style="font-size:17px;font-weight:700;color:#ce93d8">🎨 造型自選券</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px">第 1 步：選擇角色</div>
+    </div>
+    <div id="ct-char-list" style="display:flex;flex-direction:column;gap:8px;padding:0 16px;overflow-y:auto;flex:1"></div>
+    <div style="padding:12px 16px;flex-shrink:0">
+      <button class="btn" style="min-height:36px;background:#333;color:#aaa;width:100%" onclick="closeCostumeTicketModal()">取消</button>
+    </div>
   </div>
 </div>
 
 <!-- 造型自選券 Modal（第2步：選造型） -->
-<div class="modal-overlay" id="modal-costume-ticket-step2" onclick="closeCostumeTicketStep2()" style="display:none;z-index:10000">
-  <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:88vh;overflow-y:auto" onclick="event.stopPropagation()">
-    <div style="font-size:17px;font-weight:700;color:#ce93d8;text-align:center">🎨 選擇造型</div>
-    <div id="ct-step2-charname" style="font-size:12px;color:#aaa;text-align:center"></div>
-    <div id="ct-costume-list" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
-    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeCostumeTicketStep2()">← 返回</button>
+<div id="modal-costume-ticket-step2" onclick="closeCostumeTicketStep2()" style="display:none;position:fixed;inset:0;z-index:10000;background:#000a;align-items:center;justify-content:center;padding:16px">
+  <div onclick="event.stopPropagation()" style="background:#1a1a2e;border:1px solid #ce93d855;border-radius:16px;width:100%;max-width:380px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:16px 16px 12px;flex-shrink:0;text-align:center">
+      <div style="font-size:17px;font-weight:700;color:#ce93d8">🎨 選擇造型</div>
+      <div id="ct-step2-charname" style="font-size:12px;color:#aaa;margin-top:4px"></div>
+    </div>
+    <div id="ct-costume-list" style="display:flex;flex-direction:column;gap:8px;padding:0 16px;overflow-y:auto;flex:1"></div>
+    <div style="padding:12px 16px;flex-shrink:0">
+      <button class="btn" style="min-height:36px;background:#333;color:#aaa;width:100%" onclick="closeCostumeTicketStep2()">← 返回</button>
+    </div>
   </div>
 </div>
 
 <!-- 角色滿等券選角 Modal -->
-<div class="modal-overlay" id="modal-maxlv" onclick="closeMaxLvTicketModal()" style="display:none;z-index:9999">
-  <div class="modal-card" style="max-width:380px;padding:20px 16px;gap:12px;max-height:85vh;overflow-y:auto" onclick="event.stopPropagation()">
-    <div style="font-size:17px;font-weight:700;color:#ffd700;text-align:center">⭐ 角色滿等券</div>
-    <div style="font-size:12px;color:#aaa;text-align:center">選擇一隻角色直接升到 Lv.20 MAX</div>
-    <div id="maxlv-char-list" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
-    <button class="btn" style="min-height:36px;background:#333;color:#aaa" onclick="closeMaxLvTicketModal()">取消</button>
+<div id="modal-maxlv" onclick="closeMaxLvTicketModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:#000a;align-items:center;justify-content:center;padding:16px">
+  <div onclick="event.stopPropagation()" style="background:#1a1a2e;border:1px solid #ffd70055;border-radius:16px;width:100%;max-width:380px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:16px 16px 12px;flex-shrink:0;text-align:center">
+      <div style="font-size:17px;font-weight:700;color:#ffd700">⭐ 角色滿等券</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px">選擇一隻角色直接升到 Lv.20 MAX（包含未獲得角色）</div>
+    </div>
+    <div id="maxlv-char-list" style="display:flex;flex-direction:column;gap:8px;padding:0 16px;overflow-y:auto;flex:1"></div>
+    <div style="padding:12px 16px;flex-shrink:0">
+      <button class="btn" style="min-height:36px;background:#333;color:#aaa;width:100%" onclick="closeMaxLvTicketModal()">取消</button>
+    </div>
   </div>
 </div>
 
@@ -3168,16 +3180,20 @@ function openMaxLvTicketModal() {
     const cs = gs.chars[c.id];
     const lv = cs ? cs.lv : 1;
     const isMax = lv >= MAX_LEVEL;
-    const locked = !cs || !cs.unlocked;
+    const notOwned = !cs || !cs.unlocked;
     const ec = elColor[c.el] || '#aaa';
     const imgSrc = heroImgPath(c.id, false, null);
+    let statusText, statusColor;
+    if (isMax)       { statusText = 'MAX ✓';          statusColor = '#ffd700'; }
+    else if (notOwned){ statusText = '未獲得 → 使用後解鎖'; statusColor = '#ce93d8'; }
+    else             { statusText = `Lv.${lv} → MAX`; statusColor = '#a8e063'; }
     return `<button onclick="applyMaxLvTicket(${c.id})" ${isMax ? 'disabled' : ''}
       style="display:flex;align-items:center;gap:10px;background:${isMax?'#1a1a1a':'#ffffff0d'};border:1px solid ${isMax?'#333':ec+'55'};border-radius:12px;padding:8px 12px;cursor:${isMax?'default':'pointer'};opacity:${isMax?0.4:1};width:100%;text-align:left;overflow:hidden">
-      <img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;flex-shrink:0;${locked?'filter:brightness(0.3)':''}" onerror="this.style.display='none'">
+      <img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;flex-shrink:0;${notOwned?'filter:grayscale(1) brightness(0.5)':''}" onerror="this.style.display='none'">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:bold;color:#fff">${c.name}</div>
         <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${ec}">${c.el}</span></div>
-        <div style="font-size:11px;color:${isMax?'#ffd700':'#a8e063'};font-weight:bold;margin-top:2px">${isMax?'MAX ✓':'Lv.'+lv+' → MAX'}</div>
+        <div style="font-size:11px;color:${statusColor};font-weight:bold;margin-top:2px">${statusText}</div>
       </div>
     </button>`;
   }).join('');
