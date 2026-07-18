@@ -111,7 +111,7 @@
   .quest-reward { font-size:15px;font-weight:bold;color:#64dfff;flex-shrink:0;white-space:nowrap; }
 
   /* ── 商店影片卡 ── */
-  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative; }
+  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;aspect-ratio:9/16; }
   .shop-video-card:active { transform:scale(.96); }
   @media(hover:hover){.shop-video-card:hover{transform:scale(1.04);border-color:#64dfff;}}
   .shop-video-card.unlocked { border-color:#64dfff55; }
@@ -1896,7 +1896,7 @@ function renderShopGrid() {
   const base  = isAvg ? VIDEO_BASE_AVG : VIDEO_BASE_RGU;
   const prefix = isAvg ? 'AVG_V_' : 'RGU_HV_';
   const keyPfx = isAvg ? 'avg_' : 'rgu_';
-  const label  = isAvg ? 'AVG No.' : 'No.';
+  const label  = isAvg ? 'AVG ' : 'No.';
 
   grid.innerHTML = ids.map(vid => {
     const key = keyPfx + vid;
@@ -1941,7 +1941,7 @@ function openShopPreview(vid, type) {
   const isAvg  = _previewType === 'avg';
   const base   = isAvg ? VIDEO_BASE_AVG : VIDEO_BASE_RGU;
   const prefix = isAvg ? 'AVG_V_' : 'RGU_HV_';
-  const label  = isAvg ? 'AVG No.' : 'No.';
+  const label  = isAvg ? 'AVG ' : 'No.';
   const src    = base + prefix + vid + '.mp4';
   const price  = getVideoPrice(vid, _previewType);
   const canAfford = (gs.diamonds || 0) >= price;
@@ -2007,7 +2007,7 @@ function buyVideo(vid, type) {
   if (!gs.unlockedVideos) gs.unlockedVideos = {};
   gs.unlockedVideos[key] = true;
   saveGame();
-  const label = type === 'avg' ? 'AVG No.' : 'No.';
+  const label = type === 'avg' ? 'AVG ' : 'No.';
   showToast(`🎉 影片 ${label}${vid} 已解鎖！`);
   renderShop();
 }
