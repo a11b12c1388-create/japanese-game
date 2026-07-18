@@ -117,9 +117,9 @@
   .shop-video-card.unlocked { border-color:#64dfff55; }
   .shop-video-card.locked { cursor:default; }
   .shop-video-thumb { width:100%;aspect-ratio:9/16;object-fit:cover;display:block;background:#111;position:relative; }
-  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;aspect-ratio:9/16; }
-  /* thumb-wrap 絕對定位填滿卡片，避免與 aspect-ratio 循環依賴 */
-  .shop-video-thumb-wrap { position:absolute;inset:0;overflow:hidden;background:#111; }
+  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative; }
+  /* aspect-ratio 放 thumb-wrap，video 用 absolute 填滿，不影響容器高度 */
+  .shop-video-thumb-wrap { position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;background:#111; }
   .shop-video-thumb-wrap video { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block; }
   .shop-video-thumb-wrap .play-icon { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;background:#0006;opacity:0;transition:opacity .2s; }
   .shop-video-card.unlocked:hover .play-icon { opacity:1; }
