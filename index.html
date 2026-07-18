@@ -111,15 +111,18 @@
   .quest-reward { font-size:15px;font-weight:bold;color:#64dfff;flex-shrink:0;white-space:nowrap; }
 
   /* ── 商店影片卡 ── */
-  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;aspect-ratio:9/16; }
+  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative; }
   .shop-video-card:active { transform:scale(.96); }
   @media(hover:hover){.shop-video-card:hover{transform:scale(1.04);border-color:#64dfff;}}
   .shop-video-card.unlocked { border-color:#64dfff55; }
   .shop-video-card.locked { cursor:default; }
   .shop-video-thumb { width:100%;aspect-ratio:9/16;object-fit:cover;display:block;background:#111;position:relative; }
-  .shop-video-thumb-wrap { position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;background:#111; }
-  .shop-video-thumb-wrap video { width:100%;height:100%;object-fit:cover;display:block; }
-  .shop-video-thumb-wrap .play-icon { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;background:#0006;opacity:0;transition:opacity .2s; }
+  /* padding-top 技巧：強制 9:16 比例，不受 video 自然尺寸影響 */
+  .shop-video-thumb-wrap { position:relative;width:100%;padding-top:177.78%;overflow:hidden;background:#111; }
+  .shop-video-thumb-wrap > * { position:absolute;inset:0;width:100%;height:100%; }
+  .shop-video-thumb-wrap video { object-fit:cover;display:block; }
+  .shop-video-thumb-wrap .play-icon { display:flex;align-items:center;justify-content:center;font-size:36px;background:#0006;opacity:0;transition:opacity .2s; }
+  .shop-video-card { background:#1a1a2e;border:2px solid #333;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative; }
   .shop-video-card.unlocked:hover .play-icon { opacity:1; }
   .shop-video-info { position:absolute;bottom:0;left:0;right:0;padding:18px 6px 5px;
     background:linear-gradient(transparent,#000000cc); }
