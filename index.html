@@ -3358,11 +3358,17 @@ const ENDLESS_KANA_POOL = (() => {
   return [...base, ...daku, ...youon];
 })();
 
-let endless = { score:0, combo:0, multiplier:1, running:false, currentKana:null };
+let endless = { score:0, combo:0, multiplier:1, running:false, currentKana:null, queue:[] };
+
+function refillEndlessQueue() {
+  // 洗牌全部假名，確保每輪每個都出現一次才重複
+  endless.queue = shuffle([...ENDLESS_KANA_POOL]);
+}
 
 function startEndless() {
   showScreen('endless');
-  endless = { score:0, combo:0, multiplier:1, running:true, currentKana:null };
+  endless = { score:0, combo:0, multiplier:1, running:true, currentKana:null, queue:[] };
+  refillEndlessQueue();
   document.getElementById('endless-gameover').classList.remove('show');
   document.getElementById('endless-best-disp').textContent = '最高 ' + (gs.endlessBest || 0);
   nextEndlessQuestion();
@@ -3372,11 +3378,14 @@ function nextEndlessQuestion() {
   if (!endless.running) return;
   updateEndlessHUD();
   const pool = ENDLESS_KANA_POOL;
-  const correct = pool[Math.floor(Math.random() * pool.length)];
+
+  // 從洗牌佇列取下一題，用完就重新洗牌
+  if (endless.queue.length === 0) refillEndlessQueue();
+  const correct = endless.queue.pop();
   endless.currentKana = correct;
   document.getElementById('endless-kana').textContent = correct.h;
 
-  // Build 4 choices: 1 correct + 3 wrong
+  // Build 4 choices: 1 correct + 3 wrong（wrong 從剩餘佇列優先取，確保多樣性）
   const wrongPool = pool.filter(k => k.r !== correct.r);
   const wrongs = shuffle(wrongPool).slice(0, 3);
   const choices = shuffle([correct, ...wrongs]);
