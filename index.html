@@ -997,14 +997,14 @@
 </div>
 
 <!-- 角色滿等券選角 Modal -->
-<div id="modal-maxlv" onclick="closeMaxLvTicketModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:#000a;align-items:center;justify-content:center;padding:16px">
-  <div onclick="event.stopPropagation()" style="background:#1a1a2e;border:1px solid #ffd70055;border-radius:16px;width:100%;max-width:380px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
-    <div style="padding:16px 16px 12px;flex-shrink:0;text-align:center">
+<div id="modal-maxlv" onclick="closeMaxLvTicketModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:#000a;align-items:center;justify-content:center;padding:12px">
+  <div onclick="event.stopPropagation()" style="background:#1a1a2e;border:1px solid #ffd70055;border-radius:16px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:14px 16px 10px;flex-shrink:0;text-align:center">
       <div style="font-size:17px;font-weight:700;color:#ffd700">⭐ 角色滿等券</div>
-      <div style="font-size:12px;color:#aaa;margin-top:4px">選擇一隻角色直接升到 Lv.20 MAX（包含未獲得角色）</div>
+      <div style="font-size:12px;color:#aaa;margin-top:3px">選擇角色直接升到 Lv.20 MAX</div>
     </div>
-    <div id="maxlv-char-list" style="display:flex;flex-direction:column;gap:8px;padding:0 16px;overflow-y:auto;flex:1"></div>
-    <div style="padding:12px 16px;flex-shrink:0">
+    <div id="maxlv-char-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px;overflow-y:auto;flex:1;align-content:start"></div>
+    <div style="padding:10px 12px;flex-shrink:0">
       <button class="btn" style="min-height:36px;background:#333;color:#aaa;width:100%" onclick="closeMaxLvTicketModal()">取消</button>
     </div>
   </div>
@@ -3183,17 +3183,22 @@ function openMaxLvTicketModal() {
     const notOwned = !cs || !cs.unlocked;
     const ec = elColor[c.el] || '#aaa';
     const imgSrc = heroImgPath(c.id, false, null);
-    let statusText, statusColor;
-    if (isMax)       { statusText = 'MAX ✓';          statusColor = '#ffd700'; }
-    else if (notOwned){ statusText = '未獲得 → 使用後解鎖'; statusColor = '#ce93d8'; }
-    else             { statusText = `Lv.${lv} → MAX`; statusColor = '#a8e063'; }
+    let badge, badgeColor;
+    if (isMax)        { badge = 'MAX';      badgeColor = '#ffd700'; }
+    else if (notOwned){ badge = '未獲得';    badgeColor = '#ce93d8'; }
+    else              { badge = `Lv.${lv}`; badgeColor = '#a8e063'; }
+    const filter = isMax ? 'brightness(0.4)' : notOwned ? 'grayscale(1) brightness(0.55)' : '';
     return `<button onclick="applyMaxLvTicket(${c.id})" ${isMax ? 'disabled' : ''}
-      style="display:flex;align-items:center;gap:10px;background:${isMax?'#1a1a1a':'#ffffff0d'};border:1px solid ${isMax?'#333':ec+'55'};border-radius:12px;padding:8px 12px;cursor:${isMax?'default':'pointer'};opacity:${isMax?0.4:1};width:100%;text-align:left;overflow:hidden">
-      <img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;flex-shrink:0;${notOwned?'filter:grayscale(1) brightness(0.5)':''}" onerror="this.style.display='none'">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:bold;color:#fff">${c.name}</div>
-        <div style="font-size:11px;color:#aaa">${c.rarity} · <span style="color:${ec}">${c.el}</span></div>
-        <div style="font-size:11px;color:${statusColor};font-weight:bold;margin-top:2px">${statusText}</div>
+      style="display:flex;flex-direction:column;background:${isMax?'#111':'#ffffff0d'};border:2px solid ${isMax?'#333':ec+'66'};border-radius:12px;overflow:hidden;cursor:${isMax?'default':'pointer'};opacity:${isMax?0.45:1};padding:0;text-align:center">
+      <div style="position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#111">
+        <img src="${imgSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;${filter?'filter:'+filter:''}" onerror="this.style.opacity='0'">
+        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,#000c);padding:16px 4px 4px">
+          <div style="font-size:11px;font-weight:bold;color:${badgeColor}">${badge}</div>
+        </div>
+      </div>
+      <div style="padding:5px 4px 6px">
+        <div style="font-size:11px;font-weight:bold;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+        <div style="font-size:10px;color:${ec};margin-top:1px">${c.el} ${c.rarity}</div>
       </div>
     </button>`;
   }).join('');
