@@ -1002,6 +1002,7 @@ const COSTUMES = {
   30: [ {id:'c30101',name:'薄紅透瑞',  suffix:'101'},{id:'c30102',name:'禁忌織夢',  suffix:'102'},{id:'c30103',name:'濕身之秀',  suffix:'103'},{id:'c30104',name:'片刻歡愉',  suffix:'104'},{id:'c30106',name:'午夜私語',  suffix:'106'},{id:'c30108',name:'成名的代價',suffix:'108'},{id:'c30109',name:'如夢似幻',  suffix:'109'},{id:'c30110',name:'閨房密趣',  suffix:'110'} ],
   31: [ {id:'c31110',name:'閨房密趣',  suffix:'110'} ],
   35: [ {id:'c35110',name:'閨房密趣',  suffix:'110'} ],
+  36: [ {id:'c36101',name:'薄紅透瑞',  suffix:'101'} ],
 };
 
 function getActiveCostumeSuffix(id) {
@@ -1015,7 +1016,7 @@ function getActiveCostumeSuffix(id) {
 }
 
 // id 31-35 沒有 010 滿等影片；靜態滿等各自對應 101/102
-const MAX_IMG_SUFFIX = { 31:'101', 32:'101', 33:'102', 34:'102', 35:'102' };
+const MAX_IMG_SUFFIX = { 31:'101', 32:'101', 33:'101', 34:'101', 35:'101', 36:'101' };
 
 function heroImgPath(id, isMax, suffix) {
   const n = String(id).padStart(2,'0');
@@ -1078,9 +1079,10 @@ const CHARACTERS = [
   {id:30,name:'六道迴歌',   el:'暗', rarity:'SSR'},
   {id:31,name:'桃井琉奈',   el:'光', rarity:'SSR'},
   {id:32,name:'星野真夏',   el:'火', rarity:'SSR'},
-  {id:33,name:'翠葉凜音',   el:'草', rarity:'SSR'},
-  {id:34,name:'藍澤珠那',   el:'水', rarity:'SSR'},
-  {id:35,name:'冰室涼香',   el:'火', rarity:'SSR'},
+  {id:33,name:'神無月玲音', el:'暗', rarity:'SSR'},
+  {id:34,name:'柊柚葉',     el:'暗', rarity:'SSR'},
+  {id:35,name:'冰室涼香',   el:'光', rarity:'SSR'},
+  {id:36,name:'黑羽芹華',   el:'暗', rarity:'SSR'},
 ];
 
 // 5段資料（按母音分組：a/i/u/e/o）
@@ -3595,12 +3597,12 @@ function getTimeRating(secs, kanaCount) {
 //  抽卡系統
 // ══════════════════════════════════════════
 function getGachaPool() {
-  const affRewardIds = new Set(Object.values(AFFECTION_COSTUME_REWARDS));
   const pool = [];
+  const affRewardIds = new Set(Object.values(AFFECTION_COSTUME_REWARDS));
   CHARACTERS.forEach(c => {
     if (c.rarity !== 'SSR') return;
     (COSTUMES[c.id] || []).forEach(co => {
-      if (affRewardIds.has(co.id)) return;
+      if (affRewardIds.has(co.id)) return; // 好感度獎勵時裝不進抽卡池
       if (!isCostumeUnlocked(c.id, co.id)) pool.push({ charId: c.id, co });
     });
   });
